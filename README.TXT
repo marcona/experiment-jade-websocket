@@ -1,2 +1,3 @@
 beautiful test
-héhé
+hï¿½hï¿½
+ca marche pas mal github quand mÃªme !
