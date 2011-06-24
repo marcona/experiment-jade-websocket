@@ -58,7 +58,7 @@ public class ReleaseTest {
     public static final String MESSAGE_CONTENT = "hello";
     private Story story = new Story(ConnectionType.DEFAULT_CONNECTION);
     private LogString log = new LogString();
-    private AgentContainer clientContainer;
+    private AgentContainer peripheralContainer;
     private String imtpUsed;
 
 
@@ -110,11 +110,11 @@ public class ReleaseTest {
 
 
     @Test
-    public void testMainContainerWithAnEmptyClientContainer() throws Exception {
+    public void testMainContainerWithAnEmptyPeripheralContainer() throws Exception {
         final Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 
         story.record()
-              .addAction(executeMethod("startEmptyClient", inOtherClassLoader));
+              .addAction(executeMethod("startEmptyPeripheralContainer", inOtherClassLoader));
 
         story.record()
               .startTester("receiver")
@@ -133,7 +133,7 @@ public class ReleaseTest {
             story.execute();
         }
         finally {
-            executeMethod("stopClient", inOtherClassLoader).run();
+            executeMethod("stopPeripheralContainer", inOtherClassLoader).run();
         }
     }
 
@@ -149,11 +149,11 @@ public class ReleaseTest {
         });
         story.record().startAgent("listener", agentWith(new LogAMSBehaviour()));
 
-        story.record().addAction(executeMethod("startClient", inOtherClassLoader));
-        story.record().addAssert(log(log, contains("added-container(one-client-node)")));
+        story.record().addAction(executeMethod("startPeripheralContainer", inOtherClassLoader));
+        story.record().addAssert(log(log, contains("added-container(one-peripheral-container)")));
 
-        story.record().addAction(executeMethod("stopClient", inOtherClassLoader));
-        story.record().addAssert(log(log, contains("removed-container(one-client-node)")));
+        story.record().addAction(executeMethod("stopPeripheralContainer", inOtherClassLoader));
+        story.record().addAssert(log(log, contains("removed-container(one-peripheral-container)")));
 
         story.execute();
 
@@ -163,10 +163,10 @@ public class ReleaseTest {
                                   + "born-agent(.*), "
                                   + "born-agent(.*), "
                                   + "born-agent(.*), "
-                                  + "added-container(one-client-node), "
+                                  + "added-container(one-peripheral-container), "
                                   + "born-agent(sender), "
                                   + "removed-agent(sender), "
-                                  + "removed-container(one-client-node)"));
+                                  + "removed-container(one-peripheral-container)"));
 
         log.assertContent(contains("born-agent(ams)"));
         log.assertContent(contains("born-agent(df)"));
@@ -189,10 +189,10 @@ public class ReleaseTest {
                   }
               });
 
-        story.record().addAction(executeMethod("startClient", inOtherClassLoader));
+        story.record().addAction(executeMethod("startPeripheralContainer", inOtherClassLoader));
         story.record().addAssert(log(log, contains("bornAgent(sender.*:35700/JADE)")));
 
-        story.record().addAction(executeMethod("stopClient", inOtherClassLoader));
+        story.record().addAction(executeMethod("stopPeripheralContainer", inOtherClassLoader));
         story.record().addAssert(log(log, contains("deadAgent(sender.*:35700/JADE)")));
 
         story.execute();
@@ -209,49 +209,49 @@ public class ReleaseTest {
               .assertReceivedMessage(matchContent(MESSAGE_CONTENT));
 
         story.record()
-              .addAction(executeMethod("startClient", inOtherClassLoader));
+              .addAction(executeMethod("startPeripheralContainer", inOtherClassLoader));
 
         try {
             story.execute();
         }
         finally {
-            executeMethod("stopClient", inOtherClassLoader).run();
+            executeMethod("stopPeripheralContainer", inOtherClassLoader).run();
         }
     }
 
 
     @SuppressWarnings({"UseOfSystemOutOrSystemErr"})
-    public void startClient() throws Exception {
-        System.out.println("### Start client node ------------------------");
+    public void startPeripheralContainer() throws Exception {
+        System.out.println("### Start Peripheral Container ------------------------");
 
-        startClient("localhost", AgentContainer.CONTAINER_PORT, "one-client-node");
+        startPeripheralContainer("localhost", AgentContainer.CONTAINER_PORT, "one-peripheral-container");
     }
 
 
     @SuppressWarnings({"UseOfSystemOutOrSystemErr"})
-    public void startEmptyClient() throws Exception {
-        System.out.println("### Start client node ------------------------");
+    public void startEmptyPeripheralContainer() throws Exception {
+        System.out.println("### Start Peripheral Container ------------------------");
 
         ContainerConfiguration configuration = new ContainerConfiguration("localhost",
                                                                           AgentContainer.CONTAINER_PORT,
-                                                                          "one-client-node");
+                                                                          "one-peripheral-container");
         installTestedIMTP(configuration);
 
-        clientContainer = AgentContainer.createContainer(configuration);
+        peripheralContainer = AgentContainer.createContainer(configuration);
 
-        clientContainer.start();
+        peripheralContainer.start();
     }
 
 
-    public void startClient(String serverHost, int serverPort, String containerName) throws Exception {
+    public void startPeripheralContainer(String serverHost, int serverPort, String containerName) throws Exception {
         ContainerConfiguration configuration = new ContainerConfiguration(serverHost, serverPort, containerName);
         installTestedIMTP(configuration);
 
-        clientContainer = AgentContainer.createContainer(configuration);
+        peripheralContainer = AgentContainer.createContainer(configuration);
 
-        clientContainer.start();
+        peripheralContainer.start();
 
-        clientContainer.acceptNewAgent("sender", new DummyAgent(new OneShotBehaviour() {
+        peripheralContainer.acceptNewAgent("sender", new DummyAgent(new OneShotBehaviour() {
             @Override
             protected void action() {
                 getAgent().send(message(Performative.PROPOSE).to("receiver").withContent(MESSAGE_CONTENT).get());
@@ -261,12 +261,12 @@ public class ReleaseTest {
 
 
     @SuppressWarnings({"UseOfSystemOutOrSystemErr"})
-    public void stopClient() throws Exception {
-        System.out.println("### Stop client node ------------------------");
-        if (clientContainer != null) {
-            clientContainer.stop();
+    public void stopPeripheralContainer() throws Exception {
+        System.out.println("### Stop Peripheral Container ------------------------");
+        if (peripheralContainer != null) {
+            peripheralContainer.stop();
         }
-        clientContainer = null;
+        peripheralContainer = null;
     }
 
 
