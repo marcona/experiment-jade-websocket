@@ -26,7 +26,6 @@ public class WebSocketIMTPManager implements IMTPManager {
     public void initialize(Profile profile) throws IMTPException {
         logger.info("Configuring Intra platform communication through websockets...");
         boolean isMain = profile.getBooleanProperty(Profile.MAIN, true);
-
         String mainHost = getHost(Profile.MAIN_HOST, profile, getLocalHost());
         int mainPort = getPort(Profile.MAIN_PORT, profile, -1);
 
@@ -34,6 +33,14 @@ public class WebSocketIMTPManager implements IMTPManager {
         localPort = getPort(Profile.LOCAL_PORT, profile, mainPort);
 
         localNode = new WebSocketNode(PlatformManager.NO_NAME, isMain);
+        if (isMain) {
+            logger = Logger.getLogger("WebSocketIMTPManager(main)");
+            ((WebSocketNode)localNode).setLogger(Logger.getLogger("WebsocketNode(main)"));
+        }
+        else {
+            logger = Logger.getLogger("WebSocketIMTPManager(peripheral)");
+            ((WebSocketNode)localNode).setLogger(Logger.getLogger("WebsocketNode(peripheral)"));
+        }
     }
 
 

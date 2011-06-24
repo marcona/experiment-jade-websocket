@@ -48,6 +48,11 @@ class WebSocketNode extends BaseNode {
     }
 
 
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+
+
     private void tobeimplemented(String message) {
         logger.info("### --> " + message + " <-- ### -------------> TO BE IMPLEMENTED");
     }
