@@ -151,70 +151,70 @@ public class WebSocketIMTPManagerTest {
 
     private static class PlatformManagerMock implements PlatformManager {
         public String getPlatformName() throws IMTPException {
-            return null;  // Todo
+            return null;
         }
 
 
         public String getLocalAddress() {
-            return null;  // Todo
+            return null;
         }
 
 
         public void setLocalAddress(String addr) {
-            // Todo
+
         }
 
 
         public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated)
               throws IMTPException, ServiceException, JADESecurityException {
-            return null;  // Todo
+            return null;
         }
 
 
         public void removeNode(NodeDescriptor dsc, boolean propagated) throws IMTPException, ServiceException {
-            // Todo
+
         }
 
 
         public void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)
               throws IMTPException, ServiceException {
-            // Todo
+
         }
 
 
         public void removeSlice(String serviceKey, String sliceKey, boolean propagated)
               throws IMTPException, ServiceException {
-            // Todo
+
         }
 
 
         public void addReplica(String newAddr, boolean propagated) throws IMTPException, ServiceException {
-            // Todo
+
         }
 
 
         public void removeReplica(String address, boolean propagated) throws IMTPException, ServiceException {
-            // Todo
+
         }
 
 
         public Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
-            return null;  // Todo
+            return null;
         }
 
 
         public Vector findAllSlices(String serviceKey) throws IMTPException, ServiceException {
-            return null;  // Todo
+            return null;
         }
 
 
         public void adopt(Node n, Node[] children) throws IMTPException {
-            // Todo
+
         }
 
 
         public void ping() throws IMTPException {
-            // Todo
+
         }
     }
 }
