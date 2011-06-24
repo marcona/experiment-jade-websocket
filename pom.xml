@@ -6,13 +6,8 @@
     <!--
      | POM Relationships
      -->
-    <parent>
-        <groupId>com.agf.pom</groupId>
-        <artifactId>agf-pom-library</artifactId>
-        <version>SNAPSHOT</version>
-    </parent>
     <groupId>org.gonnot.prototype</groupId>
-    <artifactId>jade-websocket</artifactId>
+    <artifactId>experiment-jade-websocket</artifactId>
     <version>0.1-SNAPSHOT</version>
     <dependencies>
         <dependency>
@@ -38,20 +33,25 @@
         <dependency>
             <groupId>com.agf.agent</groupId>
             <artifactId>agf-agent</artifactId>
+            <version>1.39</version>
         </dependency>
         <dependency>
             <groupId>com.agf.agent</groupId>
             <artifactId>agf-agent</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
+            <version>1.39</version>
         </dependency>
         <dependency>
             <groupId>com.agf.test</groupId>
             <artifactId>agf-test-common</artifactId>
+            <scope>test</scope>
+            <version>3.56</version>
         </dependency>
         <dependency>
             <groupId>xstream</groupId>
             <artifactId>xstream</artifactId>
+            <version>1.2</version>
         </dependency>
     </dependencies>
 
