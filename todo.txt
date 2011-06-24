@@ -1,0 +1,6 @@
+TO-DO implementation
+--------------------
+
+* Check that peripheral are closed correctly (thread clean-up, etc.) when the platform stop (gracefully or not)
+   - e.g. PlatformManagerProxyReader
+

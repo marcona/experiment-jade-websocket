@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+     | POM Relationships
+     -->
+    <parent>
+        <groupId>com.agf.pom</groupId>
+        <artifactId>agf-pom-library</artifactId>
+        <version>SNAPSHOT</version>
+    </parent>
+    <groupId>org.gonnot.prototype</groupId>
+    <artifactId>jade-websocket</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <dependencies>
+        <dependency>
+            <groupId>jade</groupId>
+            <artifactId>http</artifactId>
+            <version>3.5-1</version>
+        </dependency>
+        <dependency>
+            <groupId>jade</groupId>
+            <artifactId>jade</artifactId>
+            <version>3.5-1</version>
+        </dependency>
+        <dependency>
+            <groupId>jade</groupId>
+            <artifactId>jade-tools</artifactId>
+            <version>3.5-1</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.agf.agent</groupId>
+            <artifactId>agf-agent</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agf.agent</groupId>
+            <artifactId>agf-agent</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.agf.test</groupId>
+            <artifactId>agf-test-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xstream</groupId>
+            <artifactId>xstream</artifactId>
+        </dependency>
+    </dependencies>
+
+    <!--
+     | Build Settings
+     -->
+
+    <!--
+    | Project Information
+    -->
+
+    <name>Prototype &gt; JADE IMTP through websocket</name>
+    <description>websocket</description>
+    <inceptionYear>2011</inceptionYear>
+
+    <!--
+    | Environment Information
+    -->
+
+</project>

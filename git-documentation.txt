@@ -1,0 +1,23 @@
+DOC GIT
+-------
+
+git config --global user.name "userid"
+git config --global user.email mon_email@allianzgi.fr
+
+or for a specific project
+git config user.name "Boris Gonnot"
+git config user.email boris.gonnot@allianzgi.fr
+
+to check configuration
+git config --list
+
+
+git clone --bare -l -s ./projectName ./projectName.git
+      ->  creation d'un repository "bare" clonable
+git clone CheminDuRepositoryBare
+      -> initialisation du projet et de la config git dans le repetoire courant
+
+git push
+     -> to publish to bare repo (origin)
+git pull
+     -> to update local from origin
