@@ -1,12 +1,19 @@
 package org.gonnot.imtp;
+import jade.core.IMTPException;
 import jade.core.Node;
+import jade.core.NodeDescriptor;
 import jade.core.PlatformManager;
 import jade.core.ProfileImpl;
 import jade.core.Service.Slice;
+import jade.core.ServiceDescriptor;
+import jade.core.ServiceException;
 import jade.mtp.TransportAddress;
+import jade.security.JADESecurityException;
 import jade.util.leap.List;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Vector;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,13 +23,32 @@ import static com.agf.test.common.matcher.JUnitMatchers.*;
  */
 public class WebSocketIMTPManagerTest {
     private static final boolean IS_MAIN_CONTAINER = true;
+    public static final boolean PERIPHERAL_CONTAINER = false;
     public static final String LOCALHOST = "localhost";
     private WebSocketIMTPManager webSocketIMTPManager;
+    private WebSocketIMTPManager main;
+    private WebSocketIMTPManager peripheral;
 
 
     @Before
     public void setUp() throws Exception {
         webSocketIMTPManager = new WebSocketIMTPManager();
+    }
+
+
+    @After
+    public void tearDown() throws Exception {
+        try {
+            if (peripheral != null) {
+                peripheral.shutDown();
+            }
+        }
+        finally {
+            if (main != null) {
+                main.shutDown();
+            }
+            webSocketIMTPManager.shutDown();
+        }
     }
 
 
@@ -70,6 +96,40 @@ public class WebSocketIMTPManagerTest {
     }
 
 
+    @Test
+    public void test_getPlatformManagerProxy() throws Exception {
+        final String platformName = "a plateform name -" + System.currentTimeMillis();
+        PlatformManager platformManager = new PlatformManagerMock() {
+            @Override
+            public String getPlatformName() throws IMTPException {
+                return platformName;
+            }
+        };
+
+        main = createMainContainer();
+        main.exportPlatformManager(platformManager);
+
+        peripheral = createPeripheralContainer();
+        PlatformManager platformManagerProxy = peripheral.getPlatformManagerProxy();
+
+        assertThat(platformManagerProxy.getPlatformName(), is(platformName));
+    }
+
+
+    private static WebSocketIMTPManager createMainContainer() throws IMTPException {
+        WebSocketIMTPManager imtp = new WebSocketIMTPManager();
+        imtp.initialize(new ProfileImpl("localhost", 69, null, IS_MAIN_CONTAINER));
+        return imtp;
+    }
+
+
+    private static WebSocketIMTPManager createPeripheralContainer() throws IMTPException {
+        WebSocketIMTPManager imtp = new WebSocketIMTPManager();
+        imtp.initialize(new ProfileImpl("localhost", 69, null, PERIPHERAL_CONTAINER));
+        return imtp;
+    }
+
+
     private String replaceVariable(String string) throws UnknownHostException {
         return string
               .replaceAll("\\$\\{localhost-canonicalName\\}", InetAddress.getLocalHost().getCanonicalHostName());
@@ -86,5 +146,75 @@ public class WebSocketIMTPManagerTest {
             }
         }
         return result.toString();
+    }
+
+
+    private static class PlatformManagerMock implements PlatformManager {
+        public String getPlatformName() throws IMTPException {
+            return null;  // Todo
+        }
+
+
+        public String getLocalAddress() {
+            return null;  // Todo
+        }
+
+
+        public void setLocalAddress(String addr) {
+            // Todo
+        }
+
+
+        public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated)
+              throws IMTPException, ServiceException, JADESecurityException {
+            return null;  // Todo
+        }
+
+
+        public void removeNode(NodeDescriptor dsc, boolean propagated) throws IMTPException, ServiceException {
+            // Todo
+        }
+
+
+        public void addSlice(ServiceDescriptor service, NodeDescriptor dsc, boolean propagated)
+              throws IMTPException, ServiceException {
+            // Todo
+        }
+
+
+        public void removeSlice(String serviceKey, String sliceKey, boolean propagated)
+              throws IMTPException, ServiceException {
+            // Todo
+        }
+
+
+        public void addReplica(String newAddr, boolean propagated) throws IMTPException, ServiceException {
+            // Todo
+        }
+
+
+        public void removeReplica(String address, boolean propagated) throws IMTPException, ServiceException {
+            // Todo
+        }
+
+
+        public Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
+            return null;  // Todo
+        }
+
+
+        public Vector findAllSlices(String serviceKey) throws IMTPException, ServiceException {
+            return null;  // Todo
+        }
+
+
+        public void adopt(Node n, Node[] children) throws IMTPException {
+            // Todo
+        }
+
+
+        public void ping() throws IMTPException {
+            // Todo
+        }
     }
 }

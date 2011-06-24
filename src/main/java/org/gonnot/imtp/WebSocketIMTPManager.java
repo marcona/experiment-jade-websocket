@@ -21,11 +21,14 @@ public class WebSocketIMTPManager implements IMTPManager {
     private String localHost;
     private int localPort;
     private Node localNode;
+    private IMTPMain main;
+    private IMTPPeripheral peripheral;
 
 
     public void initialize(Profile profile) throws IMTPException {
         logger.info("Configuring Intra platform communication through websockets...");
         boolean isMain = profile.getBooleanProperty(Profile.MAIN, true);
+
         String mainHost = getHost(Profile.MAIN_HOST, profile, getLocalHost());
         int mainPort = getPort(Profile.MAIN_PORT, profile, -1);
 
@@ -41,11 +44,25 @@ public class WebSocketIMTPManager implements IMTPManager {
             logger = Logger.getLogger("WebSocketIMTPManager(peripheral)");
             ((WebSocketNode)localNode).setLogger(Logger.getLogger("WebsocketNode(peripheral)"));
         }
+
+        if (isMain) {
+            main = new IMTPMain();
+            main.start(localHost, localPort);
+        }
+        else {
+            peripheral = new IMTPPeripheral();
+            peripheral.start(mainHost, mainPort);
+        }
     }
 
 
     public void shutDown() {
-        tobeimplemented("shutDown");
+        if (peripheral != null) {
+            peripheral.shutDown();
+        }
+        if (main != null) {
+            main.shutDown();
+        }
     }
 
 
@@ -54,8 +71,8 @@ public class WebSocketIMTPManager implements IMTPManager {
     }
 
 
-    public void exportPlatformManager(PlatformManager mgr) throws IMTPException {
-        tobeimplemented("exportPlatformManager");
+    public void exportPlatformManager(PlatformManager manager) throws IMTPException {
+        main.setPlatformManager(manager);
     }
 
 
@@ -65,8 +82,7 @@ public class WebSocketIMTPManager implements IMTPManager {
 
 
     public PlatformManager getPlatformManagerProxy() throws IMTPException {
-        unsupported("getPlatformManagerProxy");
-        return null;
+        return peripheral.getPlatformManagerProxy();
     }
 
 
