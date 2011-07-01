@@ -1,4 +1,5 @@
 package org.gonnot.imtp;
+import com.agf.test.common.LogString;
 import jade.core.IMTPException;
 import jade.core.Node;
 import jade.core.NodeDescriptor;
@@ -13,6 +14,19 @@ import java.util.Vector;
  */
 class PlatformManagerMock implements PlatformManager {
     private String platformName = null;
+    private LogString log = new LogString();
+    private String addNodeReturnValue;
+    private ServiceException serviceFailure;
+    private RuntimeException runtimeFailure;
+
+
+    PlatformManagerMock() {
+    }
+
+
+    PlatformManagerMock(LogString log) {
+        this.log = new LogString("platformManager", log);
+    }
 
 
     public String getPlatformName() throws IMTPException {
@@ -22,6 +36,24 @@ class PlatformManagerMock implements PlatformManager {
 
     public PlatformManagerMock mockGetPlatformNameToReturn(String name) {
         this.platformName = name;
+        return this;
+    }
+
+
+    public PlatformManager mockAddNodeToReturn(String value) {
+        this.addNodeReturnValue = value;
+        return this;
+    }
+
+
+    public PlatformManager mockAddNodeToFail(ServiceException failure) {
+        this.serviceFailure = failure;
+        return this;
+    }
+
+
+    public PlatformManager mockAddNodeToFail(RuntimeException failure) {
+        this.runtimeFailure = failure;
         return this;
     }
 
@@ -36,9 +68,24 @@ class PlatformManagerMock implements PlatformManager {
     }
 
 
-    public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated)
+    public String addNode(NodeDescriptor descriptor, Vector nodeServices, boolean propagated)
           throws IMTPException, ServiceException, JADESecurityException {
-        return null;
+        log.call("addNode", toString(descriptor), nodeServices, propagated);
+        if (serviceFailure != null) {
+            throw serviceFailure;
+        }
+        if (runtimeFailure != null) {
+            throw runtimeFailure;
+        }
+        return addNodeReturnValue;
+    }
+
+
+    private String toString(NodeDescriptor descriptor) {
+        if (descriptor == null) {
+            return "null";
+        }
+        return "NodeDescriptor(" + descriptor.getName() + ")";
     }
 
 

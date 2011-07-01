@@ -3,6 +3,8 @@ import jade.core.IMTPException;
 import jade.core.PlatformManager;
 import java.io.IOException;
 import org.apache.log4j.Logger;
+import org.gonnot.imtp.command.Command;
+import org.gonnot.imtp.command.Result;
 import websocket4j.server.WebServerSocket;
 import websocket4j.server.WebSocket;
 /**
@@ -114,10 +116,20 @@ class IMTPMain implements Runnable {
         }
 
 
-        private void handleConnection() throws IOException, IMTPException {
+        private void handleConnection() throws IOException {
             while (true) {
-                webSocket.getMessage();
-                webSocket.sendMessage(platformManager.getPlatformName());
+                Command command = CommandCodec.decode(webSocket.getMessage());
+                webSocket.sendMessage(CommandCodec.encode(executeCommand(command)));
+            }
+        }
+
+
+        private Result executeCommand(Command command) {
+            try {
+                return new Result(null, command.execute(platformManager));
+            }
+            catch (Throwable e) {
+                return new Result(e, null);
             }
         }
     }

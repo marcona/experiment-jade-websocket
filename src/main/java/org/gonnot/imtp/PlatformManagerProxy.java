@@ -10,6 +10,8 @@ import jade.security.JADESecurityException;
 import java.io.IOException;
 import java.util.Vector;
 import org.apache.log4j.Logger;
+import org.gonnot.imtp.command.CommandFactory;
+
 /**
  *
  */
@@ -25,9 +27,15 @@ class PlatformManagerProxy implements PlatformManager {
 
     public String getPlatformName() throws IMTPException {
         try {
-            return network.synchronousCall(new GetPlatformNameCommand());
+            return network.synchronousCall(CommandFactory.getPlatformName());
         }
         catch (IOException ex) {
+            throw new IMTPException(ex.getLocalizedMessage(), ex);
+        }
+        catch (ServiceException ex) {
+            throw new IMTPException(ex.getLocalizedMessage(), ex);
+        }
+        catch (JADESecurityException ex) {
             throw new IMTPException(ex.getLocalizedMessage(), ex);
         }
     }
@@ -44,10 +52,14 @@ class PlatformManagerProxy implements PlatformManager {
     }
 
 
-    public String addNode(NodeDescriptor dsc, Vector nodeServices, boolean propagated)
+    public String addNode(NodeDescriptor descriptor, Vector nodeServices, boolean propagated)
           throws IMTPException, ServiceException, JADESecurityException {
-        unsupported("addNode");
-        return null;
+        try {
+            return network.synchronousCall(CommandFactory.addNode(descriptor, nodeServices, propagated));
+        }
+        catch (IOException ex) {
+            throw new IMTPException(ex.getLocalizedMessage(), ex);
+        }
     }
 
 

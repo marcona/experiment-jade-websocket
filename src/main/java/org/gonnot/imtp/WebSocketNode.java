@@ -2,13 +2,15 @@ package org.gonnot.imtp;
 import jade.core.BaseNode;
 import jade.core.HorizontalCommand;
 import jade.core.IMTPException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Arrays;
 import org.apache.log4j.Logger;
 /**
  *
  */
 class WebSocketNode extends BaseNode {
-    private Logger logger = Logger.getLogger("WebSocketNode(n/a)");
+    private transient Logger logger = Logger.getLogger("WebSocketNode(n/a)");
 
 
     WebSocketNode(String nodeName, boolean hasLocalPlatformManager) {
@@ -32,24 +34,59 @@ class WebSocketNode extends BaseNode {
     }
 
 
+    private final Object terminationLock = new Object();
+    private boolean terminating = false;
+
+
     public boolean ping(boolean hang) throws IMTPException {
-        unsupported("ping");
-        return false;
+        tobeimplemented("ping");
+        if (hang) {
+            waitTermination();
+        }
+        return terminating;
+    }
+
+
+    private void waitTermination() {
+        synchronized (terminationLock) {
+            try {
+                terminationLock.wait();
+            }
+            catch (InterruptedException ie) {
+                ;// Do nothing
+            }
+        }
+    }
+
+
+    private void notifyTermination() {
+        synchronized (terminationLock) {
+            terminationLock.notifyAll();
+        }
     }
 
 
     public void interrupt() throws IMTPException {
+        notifyTermination();
         unsupported("interrupt");
     }
 
 
     public void exit() throws IMTPException {
+        terminating = true;
+        notifyTermination();
         unsupported("exit");
     }
 
 
     public void setLogger(Logger logger) {
         this.logger = logger;
+    }
+
+
+    private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+        inputStream.defaultReadObject();
+        logger = WebSocketIMTPManager.recreateLogger(this);
     }
 
 
