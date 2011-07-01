@@ -42,6 +42,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -139,6 +140,7 @@ public class ReleaseTest {
 
 
     @Test
+    @Ignore
     public void testPlatformListenerUsingAMS() throws Exception {
         final Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 
@@ -176,6 +178,7 @@ public class ReleaseTest {
 
 
     @Test
+    @Ignore
     public void testPlatformListener() throws Exception {
         final Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 
@@ -200,6 +203,7 @@ public class ReleaseTest {
 
 
     @Test
+    @Ignore
     public void testOneMessageBetweenTwoContainers() throws Exception {
         Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 

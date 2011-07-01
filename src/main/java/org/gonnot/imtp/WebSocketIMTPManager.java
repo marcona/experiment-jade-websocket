@@ -36,14 +36,7 @@ public class WebSocketIMTPManager implements IMTPManager {
         localPort = getPort(Profile.LOCAL_PORT, profile, mainPort);
 
         localNode = new WebSocketNode(PlatformManager.NO_NAME, isMain);
-        if (isMain) {
-            logger = Logger.getLogger("WebSocketIMTPManager(main)");
-            ((WebSocketNode)localNode).setLogger(Logger.getLogger("WebsocketNode(main)"));
-        }
-        else {
-            logger = Logger.getLogger("WebSocketIMTPManager(peripheral)");
-            ((WebSocketNode)localNode).setLogger(Logger.getLogger("WebsocketNode(peripheral)"));
-        }
+        manageLogger(this, isMain);
 
         if (isMain) {
             main = new IMTPMain();
@@ -168,6 +161,31 @@ public class WebSocketIMTPManager implements IMTPManager {
         }
         catch (UnknownHostException e) {
             return "localhost";
+        }
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // TODO - Clean-up the logger management
+
+
+    static Logger recreateLogger(WebSocketNode webSocketNode) {
+        if (webSocketNode.hasPlatformManager()) {
+            return Logger.getLogger("WebsocketNode(main-run by peripheral)");
+        }
+        else {
+            return Logger.getLogger("WebsocketNode(peripheral-run by main)");
+        }
+    }
+
+
+    static void manageLogger(WebSocketIMTPManager webSocketIMTPManager, boolean main) {
+        if (main) {
+            webSocketIMTPManager.logger = Logger.getLogger("WebSocketIMTPManager(main)");
+            ((WebSocketNode)webSocketIMTPManager.localNode).setLogger(Logger.getLogger("WebsocketNode(main)"));
+        }
+        else {
+            webSocketIMTPManager.logger = Logger.getLogger("WebSocketIMTPManager(peripheral)");
+            ((WebSocketNode)webSocketIMTPManager.localNode).setLogger(Logger.getLogger("WebsocketNode(peripheral)"));
         }
     }
 }

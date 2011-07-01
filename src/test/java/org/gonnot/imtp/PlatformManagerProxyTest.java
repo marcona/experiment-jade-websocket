@@ -1,6 +1,7 @@
 package org.gonnot.imtp;
 import com.agf.test.common.LogString;
 import jade.core.PlatformManager;
+import org.gonnot.imtp.command.Command;
 import org.junit.Test;
 
 import static com.agf.test.common.matcher.JUnitMatchers.*;
@@ -12,7 +13,7 @@ public class PlatformManagerProxyTest {
     @Test
     public void test_getPlatformName() throws Exception {
         NetworkWS network = new NetworkWS() {
-            public String synchronousCall(GetPlatformNameCommand command) {
+            public String synchronousCall(Command command) {
                 log.call("synchronousCall", command.getClass().getSimpleName());
                 return "a name";
             }

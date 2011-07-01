@@ -1,16 +1,21 @@
 package org.gonnot.imtp;
+import com.agf.test.common.LogString;
 import jade.core.IMTPException;
 import jade.core.Node;
+import jade.core.NodeDescriptor;
 import jade.core.PlatformManager;
 import jade.core.ProfileImpl;
 import jade.core.Service.Slice;
+import jade.core.ServiceException;
 import jade.mtp.TransportAddress;
 import jade.util.leap.List;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Vector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import static com.agf.test.common.matcher.JUnitMatchers.*;
 /**
  *
@@ -22,6 +27,7 @@ public class WebSocketIMTPManagerTest {
     private WebSocketIMTPManager webSocketIMTPManager;
     private WebSocketIMTPManager main;
     private WebSocketIMTPManager peripheral;
+    private LogString log = new LogString();
 
 
     @Before
@@ -97,13 +103,88 @@ public class WebSocketIMTPManagerTest {
               new PlatformManagerMock()
                     .mockGetPlatformNameToReturn(platformName);
 
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        assertThat(proxy.getPlatformName(), is(platformName));
+    }
+
+
+    @Test
+    @SuppressWarnings({"UseOfObsoleteCollectionType"})
+    public void test_getPlatformManagerProxy_addNode() throws Exception {
+        PlatformManager platformManager =
+              new PlatformManagerMock(log)
+                    .mockAddNodeToReturn("value returned by addNode");
+
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        String addNodeResult =
+              proxy.addNode(new NodeDescriptor(new WebSocketNode("a node", false)), new Vector(), true);
+
+        assertThat(addNodeResult, is("value returned by addNode"));
+        assertThat(log.getContent(), is("platformManager.addNode(NodeDescriptor(a node), [], true)"));
+    }
+
+
+    @Test
+    public void test_getPlatformManagerProxy_addNodeWihtNullValues() throws Exception {
+        PlatformManager platformManager =
+              new PlatformManagerMock(log)
+                    .mockAddNodeToReturn("value returned by addNode");
+
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        String addNodeResult = proxy.addNode(null, null, false);
+
+        assertThat(addNodeResult, is("value returned by addNode"));
+        assertThat(log.getContent(), is("platformManager.addNode(null, null, false)"));
+    }
+
+
+    @Test
+    public void test_getPlatformManagerProxy_addNodeFailure() throws Exception {
+        PlatformManager platformManager =
+              new PlatformManagerMock(log)
+                    .mockAddNodeToFail(new ServiceException("I have failed"));
+
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        try {
+            proxy.addNode(null, null, false);
+            fail();
+        }
+        catch (ServiceException ex) {
+            assertThat(ex.getMessage(), is("I have failed"));
+        }
+    }
+
+
+    @Test
+    public void test_getPlatformManagerProxy_addNodeRuntimeFailure() throws Exception {
+        PlatformManager platformManager =
+              new PlatformManagerMock(log)
+                    .mockAddNodeToFail(new RuntimeException("I have failed"));
+
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        try {
+            proxy.addNode(null, null, false);
+            fail();
+        }
+        catch (IMTPException ex) {
+            assertThat(ex.getMessage(),
+                       is("Unexpected server error [nested java.lang.RuntimeException: I have failed]"));
+            assertThat(ex.getNested().getMessage(), is("I have failed"));
+        }
+    }
+
+
+    private PlatformManager exportPlatformManager(PlatformManager platformManager) throws IMTPException {
         main = createMainContainer();
         main.exportPlatformManager(platformManager);
 
         peripheral = createPeripheralContainer();
-        PlatformManager platformManagerProxy = peripheral.getPlatformManagerProxy();
-
-        assertThat(platformManagerProxy.getPlatformName(), is(platformName));
+        return peripheral.getPlatformManagerProxy();
     }
 
 

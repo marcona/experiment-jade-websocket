@@ -58,6 +58,24 @@
     <!--
      | Build Settings
      -->
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-idea-plugin</artifactId>
+                <configuration>
+                    <jdkLevel>1.5</jdkLevel>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <!--
     | Project Information
