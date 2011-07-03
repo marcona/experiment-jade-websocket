@@ -91,8 +91,15 @@ class PlatformManagerProxy implements PlatformManager {
 
 
     public Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
-        unsupported("findSlice");
-        return null;
+        try {
+            return network.synchronousCall(CommandFactory.findSlice(serviceKey, sliceKey));
+        }
+        catch (IOException ex) {
+            throw new IMTPException(ex.getLocalizedMessage(), ex);
+        }
+        catch (JADESecurityException ex) {
+            throw new IMTPException(ex.getLocalizedMessage(), ex);
+        }
     }
 
 
@@ -102,7 +109,7 @@ class PlatformManagerProxy implements PlatformManager {
     }
 
 
-    public void adopt(Node n, Node[] children) throws IMTPException {
+    public void adopt(Node node, Node[] children) throws IMTPException {
         unsupported("adopt");
     }
 

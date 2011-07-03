@@ -12,6 +12,10 @@ import jade.util.leap.List;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
+import org.gonnot.imtp.mock.NodeMock;
+import org.gonnot.imtp.mock.PlatformManagerMock;
+import org.gonnot.imtp.mock.ServiceMock;
+import org.gonnot.imtp.mock.SliceMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -179,6 +183,26 @@ public class WebSocketIMTPManagerTest {
                        is("Unexpected server error [nested java.lang.RuntimeException: I have failed]"));
             assertThat(ex.getNested().getMessage(), is("I have failed"));
         }
+    }
+
+
+    @Test
+    public void test_getPlatformManagerProxy_findSlice() throws Exception {
+        PlatformManager platformManager =
+              new PlatformManagerMock(log)
+                    .mockFindSliceToReturn(slice("jade.core.management.AgentManagement", "$$$Main-Slice$$$"));
+
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        Slice foundSlice = proxy.findSlice("jade.core.management.AgentManagement", "$$$Main-Slice$$$");
+
+        assertThat(foundSlice.getService().getName(), is("jade.core.management.AgentManagement"));
+        assertThat(foundSlice.getNode().getName(), is("$$$Main-Slice$$$"));
+    }
+
+
+    private static Slice slice(final String serviceKey, final String nodeName) {
+        return new SliceMock(new ServiceMock(serviceKey), new NodeMock(nodeName));
     }
 
 

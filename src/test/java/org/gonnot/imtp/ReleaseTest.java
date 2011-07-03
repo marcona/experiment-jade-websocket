@@ -47,7 +47,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
 import static com.agf.agent.MessageTemplate.matchContent;
 import static com.agf.agent.test.AgentAssert.log;
 import static com.agf.agent.test.MessageBuilder.message;
@@ -140,7 +139,6 @@ public class ReleaseTest {
 
 
     @Test
-    @Ignore
     public void testPlatformListenerUsingAMS() throws Exception {
         final Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 
@@ -350,12 +348,12 @@ public class ReleaseTest {
         }
 
 
-        private Class handleWeirdBehaviour(String name, LinkageError e) throws ClassNotFoundException {
-            if (e.getMessage().contains("duplicate class definition")) {
+        private Class handleWeirdBehaviour(String name, LinkageError linkageError) throws ClassNotFoundException {
+            if (linkageError.getMessage().contains("duplicate class definition")) {
                 return super.loadClass(name);
             }
             else {
-                throw e;
+                throw linkageError;
             }
         }
 
@@ -405,7 +403,7 @@ public class ReleaseTest {
         }
     }
     private class LogAMSBehaviour extends AMSSubscriber {
-        @SuppressWarnings({"unchecked"})
+        @SuppressWarnings({"unchecked", "InnerClassTooDeeplyNested"})
         @Override
         protected void installHandlers(Map handlersTable) {
 

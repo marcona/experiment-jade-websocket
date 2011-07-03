@@ -1,4 +1,4 @@
-package org.gonnot.imtp;
+package org.gonnot.imtp.mock;
 import com.agf.test.common.LogString;
 import jade.core.IMTPException;
 import jade.core.Node;
@@ -12,19 +12,20 @@ import java.util.Vector;
 /**
  *
  */
-class PlatformManagerMock implements PlatformManager {
+public class PlatformManagerMock implements PlatformManager {
     private String platformName = null;
     private LogString log = new LogString();
     private String addNodeReturnValue;
     private ServiceException serviceFailure;
     private RuntimeException runtimeFailure;
+    private Slice findSliceReturnValue;
 
 
-    PlatformManagerMock() {
+    public PlatformManagerMock() {
     }
 
 
-    PlatformManagerMock(LogString log) {
+    public PlatformManagerMock(LogString log) {
         this.log = new LogString("platformManager", log);
     }
 
@@ -54,6 +55,12 @@ class PlatformManagerMock implements PlatformManager {
 
     public PlatformManager mockAddNodeToFail(RuntimeException failure) {
         this.runtimeFailure = failure;
+        return this;
+    }
+
+
+    public PlatformManager mockFindSliceToReturn(Slice slice) {
+        findSliceReturnValue = slice;
         return this;
     }
 
@@ -117,7 +124,8 @@ class PlatformManagerMock implements PlatformManager {
 
 
     public Slice findSlice(String serviceKey, String sliceKey) throws IMTPException, ServiceException {
-        return null;
+        log.call("findSlice", serviceKey, sliceKey);
+        return findSliceReturnValue;
     }
 
 

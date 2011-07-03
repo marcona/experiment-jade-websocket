@@ -19,8 +19,8 @@ class WebSocketNode extends BaseNode {
 
 
     public Object accept(HorizontalCommand cmd) throws IMTPException {
-        logger.info("accept(" + cmd.getClass().getSimpleName() + "," + cmd.getName() + "," + cmd.getInteraction()
-                    + "," + cmd.getService() + "," + Arrays.asList(cmd.getParams()) + ")");
+        logger.debug("accept(" + cmd.getClass().getSimpleName() + "," + cmd.getName() + "," + cmd.getInteraction()
+                     + "," + cmd.getService() + "," + Arrays.asList(cmd.getParams()) + ")");
 
 //        if (terminating) {
 //            throw new IMTPException("Dead node");
