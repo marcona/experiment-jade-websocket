@@ -4,10 +4,10 @@ package org.gonnot.imtp.command;
  */
 public class Result {
     private Throwable failure;
-    private String result;
+    private Object result;
 
 
-    public Result(Throwable failure, String result) {
+    public Result(Throwable failure, Object result) {
         this.failure = failure;
         this.result = result;
     }
@@ -23,7 +23,7 @@ public class Result {
     }
 
 
-    public String getResult() {
+    public Object getResult() {
         return result;
     }
 }

@@ -46,7 +46,7 @@ class IMTPPeripheral {
 
 
     private class NetworkWSImpl implements NetworkWS {
-        public String synchronousCall(Command command)
+        public  <T> T synchronousCall(Command<T> command)
               throws IOException, IMTPException, ServiceException, JADESecurityException {
             socketClient.sendMessage(CommandCodec.encode(command));
             String encodedResult = socketClient.getMessage();
@@ -64,7 +64,7 @@ class IMTPPeripheral {
                 }
                 throw new IMTPException("Unexpected server error", failure);
             }
-            return result.getResult();
+            return (T)result.getResult();
         }
     }
 }

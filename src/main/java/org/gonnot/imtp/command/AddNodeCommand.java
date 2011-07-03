@@ -9,7 +9,7 @@ import java.util.Vector;
  *
  */
 @SuppressWarnings({"UseOfObsoleteCollectionType"})
-class AddNodeCommand implements Command {
+class AddNodeCommand implements Command<String> {
     private NodeDescriptor descriptor;
     private Vector nodeServices;
     private boolean propagated;

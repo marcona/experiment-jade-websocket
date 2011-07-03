@@ -4,7 +4,7 @@ import jade.core.PlatformManager;
 /**
  *
  */
-class GetPlatformNameCommand implements Command {
+class GetPlatformNameCommand implements Command<String> {
 
     public String execute(PlatformManager platformManager) throws IMTPException {
         return platformManager.getPlatformName();

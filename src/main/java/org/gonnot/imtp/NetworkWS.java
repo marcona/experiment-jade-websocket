@@ -8,6 +8,6 @@ import org.gonnot.imtp.command.Command;
  *
  */
 interface NetworkWS {
-    public abstract String synchronousCall(Command command)
+    public abstract <T> T synchronousCall(Command<T> command)
           throws IOException, IMTPException, ServiceException, JADESecurityException;
 }

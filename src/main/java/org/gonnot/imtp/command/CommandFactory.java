@@ -9,13 +9,13 @@ public class CommandFactory {
     }
 
 
-    public static Command getPlatformName() {
+    public static Command<String> getPlatformName() {
         return new GetPlatformNameCommand();
     }
 
 
     @SuppressWarnings({"UseOfObsoleteCollectionType"})
-    public static Command addNode(NodeDescriptor descriptor, Vector nodeServices, boolean propagated) {
+    public static Command<String> addNode(NodeDescriptor descriptor, Vector nodeServices, boolean propagated) {
         return new AddNodeCommand(descriptor, nodeServices, propagated);
     }
 }

@@ -6,7 +6,6 @@ import jade.security.JADESecurityException;
 /**
  *
  */
-public interface Command {
-    String execute(PlatformManager platformManager) throws IMTPException, JADESecurityException,
-                                                           ServiceException;
+public interface  Command<T> {
+    T execute(PlatformManager platformManager) throws IMTPException, JADESecurityException, ServiceException;
 }
