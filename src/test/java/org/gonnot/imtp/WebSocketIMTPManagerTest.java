@@ -15,8 +15,11 @@ import java.util.Vector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static com.agf.test.common.matcher.JUnitMatchers.*;
+import static com.agf.test.common.matcher.JUnitMatchers.assertThat;
+import static com.agf.test.common.matcher.JUnitMatchers.fail;
+import static com.agf.test.common.matcher.JUnitMatchers.is;
+import static com.agf.test.common.matcher.JUnitMatchers.nullValue;
+import static com.agf.test.common.matcher.JUnitMatchers.sameInstance;
 /**
  *
  */
@@ -64,11 +67,11 @@ public class WebSocketIMTPManagerTest {
 
     @Test
     public void test_getLocalAdress() throws Exception {
-        webSocketIMTPManager.initialize(new ProfileImpl(InetAddress.getLocalHost().getHostAddress(), 69, null));
+        webSocketIMTPManager.initialize(new ProfileImpl(InetAddress.getLocalHost().getHostAddress(), 6969, null));
 
         List localAddresses = webSocketIMTPManager.getLocalAddresses();
 
-        assertThat(toString(localAddresses), is(replaceVariable("${localhost-canonicalName}:69")));
+        assertThat(toString(localAddresses), is(replaceVariable("${localhost-canonicalName}:6969")));
     }
 
 
@@ -190,14 +193,14 @@ public class WebSocketIMTPManagerTest {
 
     private static WebSocketIMTPManager createMainContainer() throws IMTPException {
         WebSocketIMTPManager imtp = new WebSocketIMTPManager();
-        imtp.initialize(new ProfileImpl("localhost", 69, null, IS_MAIN_CONTAINER));
+        imtp.initialize(new ProfileImpl("localhost", 6969, null, IS_MAIN_CONTAINER));
         return imtp;
     }
 
 
     private static WebSocketIMTPManager createPeripheralContainer() throws IMTPException {
         WebSocketIMTPManager imtp = new WebSocketIMTPManager();
-        imtp.initialize(new ProfileImpl("localhost", 69, null, PERIPHERAL_CONTAINER));
+        imtp.initialize(new ProfileImpl("localhost", 6969, null, PERIPHERAL_CONTAINER));
         return imtp;
     }
 
