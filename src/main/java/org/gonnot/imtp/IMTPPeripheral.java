@@ -46,25 +46,34 @@ class IMTPPeripheral {
 
 
     private class NetworkWSImpl implements NetworkWS {
-        public  <T> T synchronousCall(Command<T> command)
-              throws IOException, IMTPException, ServiceException, JADESecurityException {
-            socketClient.sendMessage(CommandCodec.encode(command));
-            String encodedResult = socketClient.getMessage();
-            Result result = CommandCodec.decodeResult(encodedResult);
-            if (result.hasFailed()) {
-                Throwable failure = result.getFailure();
-                if (failure instanceof IMTPException) {
-                    throw (IMTPException)failure;
+        public <T> T synchronousCall(Command<T> command) throws IMTPException, ServiceException, JADESecurityException {
+            try {
+                socketClient.sendMessage(CommandCodec.encode(command));
+                String encodedResult = socketClient.getMessage();
+                Result result = CommandCodec.decodeResult(encodedResult);
+                if (result.hasFailed()) {
+                    throwFailure(result.getFailure());
                 }
-                if (failure instanceof ServiceException) {
-                    throw (ServiceException)failure;
-                }
-                if (failure instanceof JADESecurityException) {
-                    throw (JADESecurityException)failure;
-                }
-                throw new IMTPException("Unexpected server error", failure);
+                //noinspection unchecked
+                return (T)result.getResult();
             }
-            return (T)result.getResult();
+            catch (IOException cause) {
+                throw new IMTPException("Communication error", cause);
+            }
+        }
+
+
+        private void throwFailure(Throwable failure) throws IMTPException, ServiceException, JADESecurityException {
+            if (failure instanceof IMTPException) {
+                throw (IMTPException)failure;
+            }
+            if (failure instanceof ServiceException) {
+                throw (ServiceException)failure;
+            }
+            if (failure instanceof JADESecurityException) {
+                throw (JADESecurityException)failure;
+            }
+            throw new IMTPException("Unexpected server error", failure);
         }
     }
 }
