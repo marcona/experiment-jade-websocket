@@ -6,15 +6,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Arrays;
 import org.apache.log4j.Logger;
+import org.gonnot.imtp.command.CommandFactory;
+import org.gonnot.imtp.command.NetworkChannel;
 
 import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
-class WebSocketNode extends BaseNode {
+public class WebSocketNode extends BaseNode {
     private transient Logger logger = Logger.getLogger("WebSocketNode(n/a)");
     private final Object terminationLock = new Object();
     private boolean terminating = false;
+    private transient NetworkChannel channel;
 
 
     WebSocketNode(String nodeName, boolean hasLocalPlatformManager) {
@@ -29,12 +32,20 @@ class WebSocketNode extends BaseNode {
 //        if (terminating) {
 //            throw JadeExceptionUtil.imtpException("Dead node");
 //        }
+        if (channel != null) {
+            return channel.execute3(CommandFactory.accept(cmd));
+        }
         try {
             return serveHorizontalCommand(cmd);
         }
         catch (jade.core.ServiceException e) {
             throw imtpException("Service Error", e);
         }
+    }
+
+
+    public void setChannel(NetworkChannel channel) {
+        this.channel = channel;
     }
 
 

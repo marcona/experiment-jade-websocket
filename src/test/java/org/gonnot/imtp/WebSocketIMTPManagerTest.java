@@ -203,9 +203,14 @@ public class WebSocketIMTPManagerTest {
 
     @Test
     public void test_getPlatformManagerProxy_findSliceUse() throws Exception {
-        WebSocketNode node = new WebSocketNode("main", true);
 
-        node.exportSlice("serviceA", new SliceMock() {
+        PlatformManager platformManager =
+              new PlatformManagerMock(log)
+                    .mockFindSliceToReturn(slice("serviceA", new WebSocketNode("main", true)));
+
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        main.getLocalNode().exportSlice("serviceA", new SliceMock() {
             @Override
             public VerticalCommand serve(HorizontalCommand cmd) {
                 log.call("serviceA.serve", cmd.getName());
@@ -213,17 +218,12 @@ public class WebSocketIMTPManagerTest {
             }
         });
 
-        PlatformManager platformManager =
-              new PlatformManagerMock(log)
-                    .mockFindSliceToReturn(slice("serviceA", node));
-
-        PlatformManager proxy = exportPlatformManager(platformManager);
-
         Object result = proxy
               .findSlice("serviceA", "main")
               .getNode().accept(new GenericCommand("do-stuff", "serviceA", ""));
 
-        log.assertContent("serviceA.serve(do-stuff)");
+        log.assertContent("platformManager.findSlice(serviceA, main)"
+                          + ", serviceA.serve(do-stuff)");
         assertThat(result, nullValue());
     }
 

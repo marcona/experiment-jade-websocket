@@ -17,7 +17,7 @@ public abstract class NetworkChannel {
             throwFailure(result.getFailure());
         }
         //noinspection unchecked
-        return (T)result.getResult();
+        return command.handle(this, (T)result.getResult());
     }
 
 

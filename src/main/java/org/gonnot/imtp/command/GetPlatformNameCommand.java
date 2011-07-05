@@ -1,12 +1,14 @@
 package org.gonnot.imtp.command;
 import jade.core.IMTPException;
+import jade.core.Node;
 import jade.core.PlatformManager;
 /**
  *
  */
-class GetPlatformNameCommand implements Command<String> {
+class GetPlatformNameCommand extends Command<String> {
 
-    public String execute(PlatformManager platformManager) throws IMTPException {
+    @Override
+    public String execute(PlatformManager platformManager, Node localNode) throws IMTPException {
         return platformManager.getPlatformName();
     }
 }

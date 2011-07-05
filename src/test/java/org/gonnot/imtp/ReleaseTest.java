@@ -42,11 +42,11 @@ import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import static com.agf.agent.MessageTemplate.matchContent;
 import static com.agf.agent.test.AgentAssert.log;
 import static com.agf.agent.test.MessageBuilder.message;
@@ -176,7 +176,6 @@ public class ReleaseTest {
 
 
     @Test
-    @Ignore
     public void testPlatformListener() throws Exception {
         final Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 
@@ -201,7 +200,6 @@ public class ReleaseTest {
 
 
     @Test
-    @Ignore
     public void testOneMessageBetweenTwoContainers() throws Exception {
         Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 

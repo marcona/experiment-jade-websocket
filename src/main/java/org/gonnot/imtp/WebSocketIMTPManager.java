@@ -41,7 +41,7 @@ public class WebSocketIMTPManager implements IMTPManager {
         manageLogger(this, isMain);
 
         if (isMain) {
-            main = new IMTPMain();
+            main = new IMTPMain(localNode);
             main.start(localHost, localPort);
         }
         else {

@@ -6,7 +6,7 @@ import org.gonnot.imtp.command.Result;
 /**
  *
  */
-public class CommandCodec {
+class CommandCodec {
     private CommandCodec() {
     }
 

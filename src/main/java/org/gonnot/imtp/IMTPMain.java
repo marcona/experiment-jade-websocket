@@ -1,5 +1,6 @@
 package org.gonnot.imtp;
 import jade.core.IMTPException;
+import jade.core.Node;
 import jade.core.PlatformManager;
 import java.io.IOException;
 import org.apache.log4j.Logger;
@@ -19,6 +20,12 @@ class IMTPMain implements Runnable {
     private PlatformManager platformManager;
     private WebServerSocket socketServer;
     private boolean closing;
+    private Node localNode;
+
+
+    IMTPMain(Node localNode) {
+        this.localNode = localNode;
+    }
 
 
     public void setPlatformManager(PlatformManager manager) {
@@ -128,7 +135,7 @@ class IMTPMain implements Runnable {
 
         private Result executeCommand(Command command) {
             try {
-                return Result.value(command.execute(platformManager));
+                return Result.value(command.execute(platformManager, localNode));
             }
             catch (Throwable e) {
                 return Result.failure(e);
