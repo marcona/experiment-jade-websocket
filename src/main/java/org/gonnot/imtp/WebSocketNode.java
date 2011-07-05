@@ -11,6 +11,8 @@ import org.apache.log4j.Logger;
  */
 class WebSocketNode extends BaseNode {
     private transient Logger logger = Logger.getLogger("WebSocketNode(n/a)");
+    private final Object terminationLock = new Object();
+    private boolean terminating = false;
 
 
     WebSocketNode(String nodeName, boolean hasLocalPlatformManager) {
@@ -32,10 +34,6 @@ class WebSocketNode extends BaseNode {
             throw new IMTPException("Service Error", e);
         }
     }
-
-
-    private final Object terminationLock = new Object();
-    private boolean terminating = false;
 
 
     public boolean ping(boolean hang) throws IMTPException {
