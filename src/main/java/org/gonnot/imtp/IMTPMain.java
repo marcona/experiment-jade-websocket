@@ -126,10 +126,10 @@ class IMTPMain implements Runnable {
 
         private Result executeCommand(Command command) {
             try {
-                return new Result(null, command.execute(platformManager));
+                return Result.value(command.execute(platformManager));
             }
             catch (Throwable e) {
-                return new Result(e, null);
+                return Result.failure(e);
             }
         }
     }

@@ -7,7 +7,7 @@ public class Result {
     private Object result;
 
 
-    public Result(Throwable failure, Object result) {
+    private Result(Throwable failure, Object result) {
         this.failure = failure;
         this.result = result;
     }
@@ -25,5 +25,15 @@ public class Result {
 
     public Object getResult() {
         return result;
+    }
+
+
+    public static Result value(Object result) {
+        return new Result(null, result);
+    }
+
+
+    public static Result failure(Throwable error) {
+        return new Result(error, null);
     }
 }
