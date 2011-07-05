@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Arrays;
 import org.apache.log4j.Logger;
+
+import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
@@ -25,13 +27,13 @@ class WebSocketNode extends BaseNode {
                      + "," + cmd.getService() + "," + Arrays.asList(cmd.getParams()) + ")");
 
 //        if (terminating) {
-//            throw new IMTPException("Dead node");
+//            throw JadeExceptionUtil.imtpException("Dead node");
 //        }
         try {
             return serveHorizontalCommand(cmd);
         }
         catch (jade.core.ServiceException e) {
-            throw new IMTPException("Service Error", e);
+            throw imtpException("Service Error", e);
         }
     }
 

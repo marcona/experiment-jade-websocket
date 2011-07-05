@@ -6,6 +6,8 @@ import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.NetworkChannel;
 import org.gonnot.imtp.command.Result;
 import websocket4j.client.WebSocket;
+
+import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
@@ -29,7 +31,7 @@ class IMTPPeripheral {
             platformManagerProxy = new PlatformManagerProxy(new NetworkChannelImpl());
         }
         catch (IOException e) {
-            throw new IMTPException("Unable to start the WebSocket client", e);
+            throw imtpException("Unable to start the WebSocket client", e);
         }
     }
 
@@ -53,7 +55,7 @@ class IMTPPeripheral {
                 return CommandCodec.decodeResult(encodedResult);
             }
             catch (IOException cause) {
-                throw new IMTPException("Communication error", cause);
+                throw imtpException("Communication error", cause);
             }
         }
     }

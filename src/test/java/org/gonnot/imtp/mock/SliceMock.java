@@ -9,12 +9,15 @@ import jade.core.VerticalCommand;
  *
  */
 public class SliceMock implements Slice {
+    private Service service;
+    private Node nodeMock;
 
-    private ServiceMock service;
-    private NodeMock nodeMock;
+
+    public SliceMock() {
+    }
 
 
-    public SliceMock(ServiceMock service, NodeMock nodeMock) {
+    public SliceMock(Service service, Node nodeMock) {
         this.service = service;
         this.nodeMock = nodeMock;
     }

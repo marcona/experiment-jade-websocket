@@ -2,6 +2,8 @@ package org.gonnot.imtp.command;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
+
+import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
@@ -53,12 +55,5 @@ public abstract class NetworkChannel {
             throw (JADESecurityException)failure;
         }
         throw imtpException("Unexpected server error", failure);
-    }
-
-
-    private static IMTPException imtpException(String message, Throwable failure) {
-        IMTPException imtpException = new IMTPException(message, failure);
-        imtpException.initCause(failure);
-        return imtpException;
     }
 }

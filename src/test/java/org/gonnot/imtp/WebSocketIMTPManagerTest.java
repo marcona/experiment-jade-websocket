@@ -1,5 +1,7 @@
 package org.gonnot.imtp;
 import com.agf.test.common.LogString;
+import jade.core.GenericCommand;
+import jade.core.HorizontalCommand;
 import jade.core.IMTPException;
 import jade.core.Node;
 import jade.core.NodeDescriptor;
@@ -7,6 +9,7 @@ import jade.core.PlatformManager;
 import jade.core.ProfileImpl;
 import jade.core.Service.Slice;
 import jade.core.ServiceException;
+import jade.core.VerticalCommand;
 import jade.mtp.TransportAddress;
 import jade.util.leap.List;
 import java.net.InetAddress;
@@ -19,11 +22,8 @@ import org.gonnot.imtp.mock.SliceMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static com.agf.test.common.matcher.JUnitMatchers.assertThat;
-import static com.agf.test.common.matcher.JUnitMatchers.fail;
-import static com.agf.test.common.matcher.JUnitMatchers.is;
-import static com.agf.test.common.matcher.JUnitMatchers.nullValue;
-import static com.agf.test.common.matcher.JUnitMatchers.sameInstance;
+
+import static com.agf.test.common.matcher.JUnitMatchers.*;
 /**
  *
  */
@@ -201,8 +201,40 @@ public class WebSocketIMTPManagerTest {
     }
 
 
+    @Test
+    public void test_getPlatformManagerProxy_findSliceUse() throws Exception {
+        WebSocketNode node = new WebSocketNode("main", true);
+
+        node.exportSlice("serviceA", new SliceMock() {
+            @Override
+            public VerticalCommand serve(HorizontalCommand cmd) {
+                log.call("serviceA.serve", cmd.getName());
+                return null;
+            }
+        });
+
+        PlatformManager platformManager =
+              new PlatformManagerMock(log)
+                    .mockFindSliceToReturn(slice("serviceA", node));
+
+        PlatformManager proxy = exportPlatformManager(platformManager);
+
+        Object result = proxy
+              .findSlice("serviceA", "main")
+              .getNode().accept(new GenericCommand("do-stuff", "serviceA", ""));
+
+        log.assertContent("serviceA.serve(do-stuff)");
+        assertThat(result, nullValue());
+    }
+
+
     private static Slice slice(final String serviceKey, final String nodeName) {
-        return new SliceMock(new ServiceMock(serviceKey), new NodeMock(nodeName));
+        return slice(serviceKey, new NodeMock(nodeName));
+    }
+
+
+    private static SliceMock slice(String serviceKey, Node node) {
+        return new SliceMock(new ServiceMock(serviceKey), node);
     }
 
 

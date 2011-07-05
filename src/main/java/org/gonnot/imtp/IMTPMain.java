@@ -7,6 +7,8 @@ import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
 import websocket4j.server.WebServerSocket;
 import websocket4j.server.WebSocket;
+
+import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
@@ -30,7 +32,7 @@ class IMTPMain implements Runnable {
             new Thread(this).start();
         }
         catch (IOException e) {
-            throw new IMTPException("Unable to start the WebSocket server", e);
+            throw imtpException("Unable to start the WebSocket server", e);
         }
     }
 

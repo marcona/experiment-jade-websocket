@@ -13,6 +13,8 @@ import jade.util.leap.List;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.apache.log4j.Logger;
+
+import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
@@ -104,7 +106,7 @@ public class WebSocketIMTPManager implements IMTPManager {
             return proxy;
         }
         catch (Exception e) {
-            throw new IMTPException("Error creating a slice proxy", e);
+            throw imtpException("Error creating a slice proxy", e);
         }
     }
 
@@ -139,7 +141,7 @@ public class WebSocketIMTPManager implements IMTPManager {
             return InetAddress.getByName(host).getCanonicalHostName();
         }
         catch (UnknownHostException e) {
-            throw new IMTPException("Unable to resolve " + host, e);
+            throw imtpException("Unable to resolve " + host, e);
         }
     }
 
