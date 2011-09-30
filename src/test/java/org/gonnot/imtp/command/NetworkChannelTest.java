@@ -4,7 +4,9 @@ import jade.core.ServiceException;
 import jade.security.JADESecurityException;
 import org.junit.Test;
 
-import static com.agf.test.common.matcher.JUnitMatchers.*;
+import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
+import static net.codjo.test.common.matcher.JUnitMatchers.fail;
+import static net.codjo.test.common.matcher.JUnitMatchers.is;
 import static org.gonnot.imtp.command.CommandFactory.getPlatformName;
 /**
  *

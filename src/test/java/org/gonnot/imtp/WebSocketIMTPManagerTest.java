@@ -1,5 +1,4 @@
 package org.gonnot.imtp;
-import com.agf.test.common.LogString;
 import jade.core.GenericCommand;
 import jade.core.HorizontalCommand;
 import jade.core.IMTPException;
@@ -15,6 +14,7 @@ import jade.util.leap.List;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Vector;
+import net.codjo.test.common.LogString;
 import org.gonnot.imtp.mock.NodeMock;
 import org.gonnot.imtp.mock.PlatformManagerMock;
 import org.gonnot.imtp.mock.ServiceMock;
@@ -23,7 +23,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.agf.test.common.matcher.JUnitMatchers.*;
+import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
+import static net.codjo.test.common.matcher.JUnitMatchers.fail;
+import static net.codjo.test.common.matcher.JUnitMatchers.is;
+import static net.codjo.test.common.matcher.JUnitMatchers.nullValue;
+import static net.codjo.test.common.matcher.JUnitMatchers.sameInstance;
 /**
  *
  */

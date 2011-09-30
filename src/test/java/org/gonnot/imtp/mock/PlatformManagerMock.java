@@ -1,5 +1,4 @@
 package org.gonnot.imtp.mock;
-import com.agf.test.common.LogString;
 import jade.core.IMTPException;
 import jade.core.Node;
 import jade.core.NodeDescriptor;
@@ -9,6 +8,7 @@ import jade.core.ServiceDescriptor;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
 import java.util.Vector;
+import net.codjo.test.common.LogString;
 /**
  *
  */

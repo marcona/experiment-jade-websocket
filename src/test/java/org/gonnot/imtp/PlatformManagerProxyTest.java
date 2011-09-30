@@ -1,12 +1,13 @@
 package org.gonnot.imtp;
-import com.agf.test.common.LogString;
 import jade.core.PlatformManager;
+import net.codjo.test.common.LogString;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.NetworkChannel;
 import org.gonnot.imtp.command.Result;
 import org.junit.Test;
 
-import static com.agf.test.common.matcher.JUnitMatchers.*;
+import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
+import static net.codjo.test.common.matcher.JUnitMatchers.is;
 
 public class PlatformManagerProxyTest {
     private LogString log = new LogString();

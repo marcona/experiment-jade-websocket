@@ -31,22 +31,22 @@
             <version>1.2.8</version>
         </dependency>
         <dependency>
-            <groupId>com.agf.agent</groupId>
-            <artifactId>agf-agent</artifactId>
-            <version>1.39</version>
+            <groupId>net.codjo.agent</groupId>
+            <artifactId>codjo-agent</artifactId>
+            <version>1.40</version>
         </dependency>
         <dependency>
-            <groupId>com.agf.agent</groupId>
-            <artifactId>agf-agent</artifactId>
+            <groupId>net.codjo.agent</groupId>
+            <artifactId>codjo-agent</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
-            <version>1.39</version>
+            <version>1.40</version>
         </dependency>
         <dependency>
-            <groupId>com.agf.test</groupId>
-            <artifactId>agf-test-common</artifactId>
+            <groupId>net.codjo.test</groupId>
+            <artifactId>codjo-test-common</artifactId>
             <scope>test</scope>
-            <version>3.56</version>
+            <version>3.57</version>
         </dependency>
         <dependency>
             <groupId>xstream</groupId>

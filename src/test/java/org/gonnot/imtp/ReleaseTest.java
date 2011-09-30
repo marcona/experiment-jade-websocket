@@ -1,15 +1,4 @@
 package org.gonnot.imtp;
-import com.agf.agent.AclMessage.Performative;
-import com.agf.agent.Agent;
-import com.agf.agent.AgentContainer;
-import com.agf.agent.ContainerConfiguration;
-import com.agf.agent.JadeWrapper;
-import com.agf.agent.behaviour.OneShotBehaviour;
-import com.agf.agent.test.DummyAgent;
-import com.agf.agent.test.OneShotStep;
-import com.agf.agent.test.Story;
-import com.agf.agent.test.Story.ConnectionType;
-import com.agf.test.common.LogString;
 import jade.domain.introspection.AMSSubscriber;
 import jade.domain.introspection.AddedContainer;
 import jade.domain.introspection.AddedMTP;
@@ -40,6 +29,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+import net.codjo.agent.AclMessage.Performative;
+import net.codjo.agent.Agent;
+import net.codjo.agent.AgentContainer;
+import net.codjo.agent.ContainerConfiguration;
+import net.codjo.agent.JadeWrapper;
+import net.codjo.agent.behaviour.OneShotBehaviour;
+import net.codjo.agent.test.DummyAgent;
+import net.codjo.agent.test.OneShotStep;
+import net.codjo.agent.test.Story;
+import net.codjo.agent.test.Story.ConnectionType;
+import net.codjo.test.common.LogString;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,9 +47,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import static com.agf.agent.MessageTemplate.matchContent;
-import static com.agf.agent.test.AgentAssert.log;
-import static com.agf.agent.test.MessageBuilder.message;
+import static net.codjo.agent.MessageTemplate.matchContent;
+import static net.codjo.agent.test.AgentAssert.log;
+import static net.codjo.agent.test.MessageBuilder.message;
 
 @RunWith(Parameterized.class)
 public class ReleaseTest {
@@ -142,7 +142,7 @@ public class ReleaseTest {
     public void testPlatformListenerUsingAMS() throws Exception {
         final Object inOtherClassLoader = newInstance(ReleaseTest.class.getName());
 
-        story.record().addAction(new com.agf.agent.test.AgentContainerFixture.Runnable() {
+        story.record().addAction(new net.codjo.agent.test.AgentContainerFixture.Runnable() {
             public void run() throws Exception {
                 Thread.sleep(200); // to avoid meta-reset-events in the log
             }
@@ -306,9 +306,9 @@ public class ReleaseTest {
     }
 
 
-    private com.agf.agent.test.AgentContainerFixture.Runnable executeMethod(final String methodName,
-                                                                            final Object inOtherClassLoader) {
-        return new com.agf.agent.test.AgentContainerFixture.Runnable() {
+    private net.codjo.agent.test.AgentContainerFixture.Runnable executeMethod(final String methodName,
+                                                                              final Object inOtherClassLoader) {
+        return new net.codjo.agent.test.AgentContainerFixture.Runnable() {
             public void run() throws Exception {
                 inOtherClassLoader.getClass().getMethod(methodName).invoke(inOtherClassLoader);
             }
