@@ -46,14 +46,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
 import static net.codjo.agent.MessageTemplate.matchContent;
 import static net.codjo.agent.test.AgentAssert.log;
 import static net.codjo.agent.test.MessageBuilder.message;
 
 @RunWith(Parameterized.class)
 public class ReleaseTest {
-    public static final String[] RELOADED_PACKAGES = {"org.gonnot", "jade", "com.agf"};
+    public static final String[] RELOADED_PACKAGES = {"org.gonnot", "jade", "net.codjo"};
     public static final String[] RELOADED_EXCEPTION = {"jade.util.Logger" /* jade issue */};
     public static final String MESSAGE_CONTENT = "hello";
     private Story story = new Story(ConnectionType.DEFAULT_CONNECTION);
