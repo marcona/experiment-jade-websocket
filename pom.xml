@@ -94,4 +94,10 @@
     | Environment Information
     -->
 
+    <repositories>
+        <repository>
+            <id>codjo-unofficial</id>
+            <url>http://home.gonnot.net/mvn2-codjo</url>
+        </repository>
+    </repositories>
 </project>
