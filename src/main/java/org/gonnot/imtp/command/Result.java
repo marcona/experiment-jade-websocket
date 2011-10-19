@@ -5,11 +5,13 @@ package org.gonnot.imtp.command;
 public class Result {
     private Throwable failure;
     private Object result;
+    private int commandId;
 
 
-    private Result(Throwable failure, Object result) {
+    private Result(Throwable failure, Object result, int commandId) {
         this.failure = failure;
         this.result = result;
+        this.commandId = commandId;
     }
 
 
@@ -28,12 +30,30 @@ public class Result {
     }
 
 
+    public int getCommandId() {
+        return commandId;
+    }
+
+
     public static Result value(Object result) {
-        return new Result(null, result);
+        // TODO a virer ?
+        return new Result(null, result, 0);
+    }
+
+
+    public static Result value(Object result, int commandId) {
+        // todo
+        return new Result(null, result, commandId);
     }
 
 
     public static Result failure(Throwable error) {
-        return new Result(error, null);
+        // TODO a virer ?
+        return new Result(error, null, 0);
+    }
+
+
+    public static Result failure(Throwable error, Command command) {
+        return new Result(error, null, command.getCommandId());
     }
 }
