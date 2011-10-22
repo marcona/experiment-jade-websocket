@@ -1,7 +1,5 @@
 package org.gonnot.imtp.engine;
 import jade.core.IMTPException;
-import jade.core.Node;
-import jade.core.PlatformManager;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
 import java.lang.Thread.State;
@@ -11,9 +9,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
-import net.codjo.agent.test.AgentAssert;
-import net.codjo.agent.test.AgentAssert.Assertion;
-import net.codjo.agent.test.AgentContainerFixture;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
 import org.gonnot.imtp.engine.ClientEngine.ClientWebSocket;
@@ -22,7 +17,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import static net.codjo.test.common.matcher.JUnitMatchers.*;
+import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
+import static net.codjo.test.common.matcher.JUnitMatchers.is;
+import static org.gonnot.imtp.util.TestUtil.assertTrue;
+import static org.gonnot.imtp.util.TestUtil.threadStateIS;
 public class ClientEngineTest {
     @SuppressWarnings({"PublicField"}) @Rule public ExpectedException thrown = ExpectedException.none();
     private ClientEngine clientEngine;
@@ -60,7 +58,7 @@ public class ClientEngineTest {
 
     @Test
     public void test_serverResultCanBeUpdated() throws Exception {
-        SimpleCommand command = new SimpleCommand() {
+        DummyCommand command = new DummyCommand() {
             @Override
             public String handle(ClientWebSocket clientWebSocket, String result) {
                 return result + " - updated on the client side";
@@ -107,14 +105,14 @@ public class ClientEngineTest {
 
         clientEngine.shutdown();
 
-        ensureThat(threadStateIS(clientEngine.getWebsockReader(), State.TERMINATED));
+        assertTrue(threadStateIS(clientEngine.getWebSocketReader(), State.TERMINATED));
 
         clientEngine.execute(aCommand());
     }
 
 
     @Test
-    public void test_errorIMTPExecptionCase() throws Exception {
+    public void test_errorIMTPExceptionCase() throws Exception {
         checkErrorManagementFor(new IMTPException("Server Error"));
     }
 
@@ -167,32 +165,12 @@ public class ClientEngineTest {
 
 
     private Command<String> aCommand() {
-        return new SimpleCommand();
+        return new DummyCommand();
     }
 
 
     private Command<String> aCommand(final int id) {
-        return new SimpleCommand() {
-            @Override
-            public int getCommandId() {
-                return id;
-            }
-        };
-    }
-
-
-    private Assertion threadStateIS(final Thread thread, final State state) {
-        return new Assertion() {
-            public void check() throws Throwable {
-                assertThat(thread.getState(), is(state));
-            }
-        };
-    }
-
-
-    static void ensureThat(AgentAssert.Assertion assertion) {
-        // TODO[BORIS] create static method in Agent
-        new AgentContainerFixture().assertUntilOk(assertion);
+        return new DummyCommand(id);
     }
 
 
@@ -217,12 +195,6 @@ public class ClientEngineTest {
         public void mockResponse(Result mockedResponse) {
             results.insertElementAt(mockedResponse, 0);
             waitResults.release();
-        }
-    }
-    private class SimpleCommand extends Command<String> {
-        @Override
-        public String execute(PlatformManager platformManager, Node localNode) {
-            return null;
         }
     }
 }

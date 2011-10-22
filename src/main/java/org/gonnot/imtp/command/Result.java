@@ -54,6 +54,7 @@ public class Result {
 
 
     public static Result failure(Throwable error, Command command) {
+        // TODO what if "command is null"
         return new Result(error, null, command.getCommandId());
     }
 }

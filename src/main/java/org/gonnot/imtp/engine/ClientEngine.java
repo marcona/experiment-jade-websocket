@@ -16,7 +16,7 @@ import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 public class ClientEngine {
     private static final Logger LOG = Logger.getLogger(ClientEngine.class);
     private ClientWebSocket clientWebSocket;
-    private WebSocketReader websockReader = new WebSocketReader();
+    private WebSocketReader webSocketReader = new WebSocketReader();
     private Map<Integer, ResultPointer> activeCommands
           = Collections.synchronizedMap(new HashMap<Integer, ResultPointer>());
 
@@ -24,13 +24,13 @@ public class ClientEngine {
     public ClientEngine(ClientWebSocket clientWebSocket) {
         this.clientWebSocket = clientWebSocket;
         LOG.info("start IMTP ClientEngine...");
-        websockReader.start();
+        webSocketReader.start();
     }
 
 
     public <T> T execute(Command<T> command)
           throws InterruptedException, IMTPException, ServiceException, JADESecurityException {
-        if (websockReader.shutdownActivated) {
+        if (webSocketReader.shutdownActivated) {
             throw new IMTPException("IMTP connection has been shutdown.");
         }
 
@@ -53,12 +53,12 @@ public class ClientEngine {
 
     public void shutdown() {
         LOG.info("shutdown IMTP ClientEngine...");
-        websockReader.shutdown();
+        webSocketReader.shutdown();
     }
 
 
-    Thread getWebsockReader() {
-        return websockReader;
+    Thread getWebSocketReader() {
+        return webSocketReader;
     }
 
 

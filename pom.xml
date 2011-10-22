@@ -53,11 +53,13 @@
             <artifactId>xstream</artifactId>
             <version>1.2</version>
         </dependency>
-        <dependency>
-            <groupId>net.codjo.taskpool</groupId>
-            <artifactId>codjo-taskpool</artifactId>
-            <version>2.2</version>
-        </dependency>
+        <!--
+                <dependency>
+                    <groupId>net.codjo.taskpool</groupId>
+                    <artifactId>codjo-taskpool</artifactId>
+                    <version>2.2</version>
+                </dependency>
+        -->
     </dependencies>
 
     <!--
