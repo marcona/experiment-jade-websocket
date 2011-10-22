@@ -15,14 +15,14 @@ import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
  */
 public class CommandSenderEngine {
     private static final Logger LOG = Logger.getLogger(CommandSenderEngine.class);
-    private ClientWebSocket clientWebSocket;
+    private WebSocketGlue webSocket;
     private WebSocketReader webSocketReader = new WebSocketReader();
     private Map<Integer, ResultPointer> activeCommands
           = Collections.synchronizedMap(new HashMap<Integer, ResultPointer>());
 
 
-    public CommandSenderEngine(ClientWebSocket clientWebSocket) {
-        this.clientWebSocket = clientWebSocket;
+    public CommandSenderEngine(WebSocketGlue webSocket) {
+        this.webSocket = webSocket;
         LOG.info("start IMTP ClientEngine...");
         webSocketReader.start();
     }
@@ -36,7 +36,7 @@ public class CommandSenderEngine {
 
         ResultPointer resultPointer = new ResultPointer();
         activeCommands.put(command.getCommandId(), resultPointer);
-        clientWebSocket.send(command);
+        webSocket.send(command);
 
         resultPointer.acquire();
 
@@ -48,7 +48,7 @@ public class CommandSenderEngine {
         }
 
         //noinspection unchecked
-        return command.handle(this.clientWebSocket, (T)result.getResult());
+        return command.handle(this.webSocket, (T)result.getResult());
     }
 
 
@@ -90,7 +90,7 @@ public class CommandSenderEngine {
         public void run() {
             try {
                 while (!shutdownActivated) {
-                    Result result = clientWebSocket.receive();
+                    Result result = webSocket.receive();
 
                     ResultPointer resultPointer = activeCommands.get(result.getCommandId());
                     if (resultPointer == null) {
@@ -144,7 +144,7 @@ public class CommandSenderEngine {
             semaphore.release();
         }
     }
-    public static interface ClientWebSocket {
+    public static interface WebSocketGlue {
         public void send(Command command);
 
 

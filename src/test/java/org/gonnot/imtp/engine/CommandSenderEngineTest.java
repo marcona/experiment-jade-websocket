@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
-import org.gonnot.imtp.engine.CommandSenderEngine.ClientWebSocket;
+import org.gonnot.imtp.engine.CommandSenderEngine.WebSocketGlue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,13 +24,13 @@ import static org.gonnot.imtp.util.TestUtil.threadStateIS;
 public class CommandSenderEngineTest {
     @SuppressWarnings({"PublicField"}) @Rule public ExpectedException thrown = ExpectedException.none();
     private CommandSenderEngine senderEngine;
-    private ClientWebSocketMock channelMock;
+    private WebSocketGlueMock channelMock;
     private ExecutorService executors;
 
 
     @Before
     public void setUp() throws Exception {
-        channelMock = new ClientWebSocketMock();
+        channelMock = new WebSocketGlueMock();
         senderEngine = new CommandSenderEngine(channelMock);
     }
 
@@ -60,7 +60,7 @@ public class CommandSenderEngineTest {
     public void test_serverResultCanBeUpdated() throws Exception {
         DummyCommand command = new DummyCommand() {
             @Override
-            public String handle(ClientWebSocket clientWebSocket, String result) {
+            public String handle(WebSocketGlue clientWebSocket, String result) {
                 return result + " - updated on the client side";
             }
         };
@@ -176,7 +176,7 @@ public class CommandSenderEngineTest {
     }
 
 
-    private class ClientWebSocketMock implements ClientWebSocket {
+    private class WebSocketGlueMock implements WebSocketGlue {
         private Semaphore commandReceived = new Semaphore(0);
         private Semaphore waitCommandSent = new Semaphore(0);
         private Semaphore waitResults = new Semaphore(0);

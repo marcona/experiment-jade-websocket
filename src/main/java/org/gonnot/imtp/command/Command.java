@@ -4,7 +4,7 @@ import jade.core.Node;
 import jade.core.PlatformManager;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
-import org.gonnot.imtp.engine.CommandSenderEngine.ClientWebSocket;
+import org.gonnot.imtp.engine.CommandSenderEngine.WebSocketGlue;
 /**
  *
  */
@@ -18,7 +18,7 @@ public abstract class Command<T> {
     }
 
 
-    public T handle(ClientWebSocket clientWebSocket, T result) throws IMTPException {
+    public T handle(WebSocketGlue webSocket, T result) throws IMTPException {
         // todo : this method replaces the previous one (switch visibility to protected)
         return result;
     }

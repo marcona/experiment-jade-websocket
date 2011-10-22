@@ -8,7 +8,7 @@ import java.util.concurrent.Semaphore;
 import net.codjo.agent.test.AgentAssert.Assertion;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
-import org.gonnot.imtp.engine.CommandExecutorEngine.ServerWebSocket;
+import org.gonnot.imtp.engine.CommandExecutorEngine.WebSocketGlue;
 import org.gonnot.imtp.mock.NodeMock;
 import org.gonnot.imtp.mock.PlatformManagerMock;
 import org.junit.After;
@@ -25,7 +25,7 @@ import static org.gonnot.imtp.util.TestUtil.threadStateIS;
  *
  */
 public class CommandExecutorEngineTest {
-    private ServerWebSocketMock webSocket = new ServerWebSocketMock();
+    private WebSocketGlueMock webSocket = new WebSocketGlueMock();
     private CommandExecutorEngine executorEngine;
 
 
@@ -156,7 +156,7 @@ public class CommandExecutorEngineTest {
     }
 
 
-    private static class ServerWebSocketMock implements ServerWebSocket {
+    private static class WebSocketGlueMock implements WebSocketGlue {
         private Semaphore waitForCommand = new Semaphore(0);
         private Stack<Command> commands = new Stack<Command>();
         private Stack<Result> sentResults = new Stack<Result>();

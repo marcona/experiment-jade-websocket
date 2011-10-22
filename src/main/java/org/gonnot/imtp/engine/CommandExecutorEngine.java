@@ -13,13 +13,13 @@ public class CommandExecutorEngine {
     private static final Logger LOG = Logger.getLogger(CommandExecutorEngine.class);
     private static final int EXECUTOR_THREAD_MAX_COUNT = 5;
     private WebSocketReaderWriter socketReaderWriter = new WebSocketReaderWriter();
-    private ServerWebSocket serverWebSocket;
+    private WebSocketGlue webSocket;
     private PlatformManager platformManager;
     private Node node;
 
 
-    public CommandExecutorEngine(ServerWebSocket serverWebSocket) {
-        this.serverWebSocket = serverWebSocket;
+    public CommandExecutorEngine(WebSocketGlue webSocket) {
+        this.webSocket = webSocket;
 
         LOG.info("bootstrap IMTP ServerEngine...");
         socketReaderWriter.start();
@@ -43,7 +43,7 @@ public class CommandExecutorEngine {
     }
 
 
-    public static interface ServerWebSocket {
+    public static interface WebSocketGlue {
         public void send(Result result);
 
 
@@ -60,25 +60,19 @@ public class CommandExecutorEngine {
 
 
         @Override
-        public synchronized void start() {
-            super.start();
-        }
-
-
-        @Override
         public void run() {
             executorService = Executors.newFixedThreadPool(EXECUTOR_THREAD_MAX_COUNT);
             while (!shutdownActivated) {
                 Command command = null;
                 try {
-                    command = serverWebSocket.receive();
+                    command = webSocket.receive();
                     executorService.execute(new CommandExecutor(command));
                 }
                 catch (Throwable error) {
                     if (shutdownActivated) {
                         return;
                     }
-                    serverWebSocket.send(Result.failure(error, command));
+                    webSocket.send(Result.failure(error, command));
                 }
             }
         }
@@ -103,13 +97,13 @@ public class CommandExecutorEngine {
             public void run() {
                 try {
                     Object commandResult = command.execute(platformManager, node);
-                    serverWebSocket.send(Result.value(commandResult, command.getCommandId()));
+                    webSocket.send(Result.value(commandResult, command.getCommandId()));
                 }
                 catch (Throwable error) {
                     if (shutdownActivated) {
                         return;
                     }
-                    serverWebSocket.send(Result.failure(error, command));
+                    webSocket.send(Result.failure(error, command));
                 }
             }
         }
