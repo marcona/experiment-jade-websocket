@@ -2,6 +2,7 @@ package org.gonnot.imtp.engine;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
+import java.io.IOException;
 import java.lang.Thread.State;
 import java.util.Stack;
 import java.util.concurrent.Callable;
@@ -107,9 +108,18 @@ public class SenderEngineTest {
 
         senderEngine.shutdown();
 
-        assertTrue(threadStateIS(senderEngine.getWebSocketReader(), State.TERMINATED));
+        assertTrue(threadStateIS(senderEngine.getResultReader(), State.TERMINATED));
 
         senderEngine.execute(aCommand());
+    }
+
+
+    @Test
+    public void test_shutdownBecauseOfCommunicationError() throws Exception {
+        channelMock.mockNetworkFailure(new IOException("Reading error"));
+
+        assertTrue(threadStateIS(senderEngine.getResultReader(), State.TERMINATED));
+        assertThat(senderEngine.isShutdown(), is(true));
     }
 
 
@@ -181,6 +191,7 @@ public class SenderEngineTest {
         private Semaphore waitCommandSent = new Semaphore(0);
         private Semaphore waitResults = new Semaphore(0);
         private Stack<Result> results = new Stack<Result>();
+        private IOException websocketFailure;
 
 
         public void send(Command command) {
@@ -189,10 +200,18 @@ public class SenderEngineTest {
         }
 
 
-        public Result receive() throws InterruptedException {
+        public Result receive() throws InterruptedException, IOException {
             waitCommandSent.acquire();
             waitResults.acquire();
+            if (websocketFailure != null) {
+                throw websocketFailure;
+            }
             return results.pop();
+        }
+
+
+        public String getRemoteId() {
+            return "test";
         }
 
 
@@ -204,6 +223,13 @@ public class SenderEngineTest {
 
         public void waitForSubmitedCommandCount(int expectedCommandCount) throws InterruptedException {
             commandReceived.acquire(expectedCommandCount);
+        }
+
+
+        public void mockNetworkFailure(IOException failure) {
+            this.websocketFailure = failure;
+            waitCommandSent.release();
+            waitResults.release();
         }
     }
 }

@@ -2,6 +2,7 @@ package org.gonnot.imtp.engine;
 import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,32 +17,31 @@ import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 public class SenderEngine {
     private static final Logger LOG = Logger.getLogger(SenderEngine.class);
     private WebSocketGlue webSocket;
-    private WebSocketReader webSocketReader = new WebSocketReader();
+    private WebSocketResultReader resultReader = new WebSocketResultReader();
+    private volatile boolean shutdownActivated = false;
     private Map<Integer, ResultPointer> activeCommands
           = Collections.synchronizedMap(new HashMap<Integer, ResultPointer>());
 
 
     public SenderEngine(WebSocketGlue webSocket) {
         this.webSocket = webSocket;
-        LOG.info("start IMTP ClientEngine...");
-        webSocketReader.start();
+        LOG.info("start command sender engine to " + webSocket.getRemoteId());
+        resultReader.start();
     }
 
 
     public <T> T execute(Command<T> command)
           throws InterruptedException, IMTPException, ServiceException, JADESecurityException {
-        if (webSocketReader.shutdownActivated) {
+        if (shutdownActivated) {
             throw new IMTPException("IMTP connection has been shutdown.");
         }
 
-        ResultPointer resultPointer = new ResultPointer();
-        activeCommands.put(command.getCommandId(), resultPointer);
-        webSocket.send(command);
+        ResultPointer resultPointer = openAsActiveCommand(command);
 
+        webSocket.send(command);
         resultPointer.acquire();
 
-        activeCommands.remove(command.getCommandId());
-        Result result = resultPointer.getResult();
+        Result result = closeAsActiveCommand(command, resultPointer);
 
         if (result.hasFailed()) {
             throwFailure(result.getFailure());
@@ -52,14 +52,58 @@ public class SenderEngine {
     }
 
 
-    public void shutdown() {
-        LOG.info("shutdown IMTP ClientEngine...");
-        webSocketReader.shutdown();
+    private void handleIncomingResults() {
+        try {
+            while (!shutdownActivated) {
+                Result result = webSocket.receive();
+
+                handleResult(result);
+            }
+        }
+        catch (Throwable e) {
+            if (e instanceof InterruptedException) {
+                // TODO specific management
+                LOG.warn("Unexpected thread interruption...");
+            }
+            else {
+                LOG.error("Unexpected error...", e);
+            }
+
+            shutdown();
+        }
     }
 
 
-    Thread getWebSocketReader() {
-        return webSocketReader;
+    private void handleResult(Result result) {
+        ResultPointer resultPointer = activeCommands.get(result.getCommandId());
+        if (resultPointer == null) {
+            LOG.error("Received a result for an unknown request(" + result.getCommandId() + ") " + result);
+            return;
+        }
+
+        resultPointer.setResult(result);
+        resultPointer.release();
+    }
+
+
+    public void shutdown() {
+        if (isShutdown()) {
+            return;
+        }
+        LOG.info("stop command sender engine to " + webSocket.getRemoteId());
+        shutdownActivated = true;
+        // TODO propagate interrupted exception to all active commands.
+        resultReader.shutdownResultReader();
+    }
+
+
+    boolean isShutdown() {
+        return shutdownActivated;
+    }
+
+
+    Thread getResultReader() {
+        return resultReader;
     }
 
 
@@ -77,42 +121,33 @@ public class SenderEngine {
     }
 
 
-    private class WebSocketReader extends Thread {
-        private volatile boolean shutdownActivated = false;
+    private <T> Result closeAsActiveCommand(Command<T> command, ResultPointer resultPointer) {
+        activeCommands.remove(command.getCommandId());
+        return resultPointer.getResult();
+    }
 
 
-        private WebSocketReader() {
-            super("WebSocketReader");
+    private <T> ResultPointer openAsActiveCommand(Command<T> command) {
+        ResultPointer resultPointer = new ResultPointer();
+        activeCommands.put(command.getCommandId(), resultPointer);
+        return resultPointer;
+    }
+
+
+    private class WebSocketResultReader extends Thread {
+
+        private WebSocketResultReader() {
+            super("result-reader");
         }
 
 
         @Override
         public void run() {
-            try {
-                while (!shutdownActivated) {
-                    Result result = webSocket.receive();
-
-                    ResultPointer resultPointer = activeCommands.get(result.getCommandId());
-                    if (resultPointer == null) {
-                        LOG.error("Received a result for an unknown request(" + result.getCommandId() + ") " + result);
-                        continue;
-                    }
-
-                    resultPointer.setResult(result);
-                    resultPointer.release();
-                }
-            }
-            catch (Throwable e) {
-                if (shutdownActivated) {
-                    return;
-                }
-                LOG.info("Unexpected error...", e);
-            }
+            handleIncomingResults();
         }
 
 
-        public void shutdown() {
-            shutdownActivated = true;
+        public void shutdownResultReader() {
             super.interrupt();
         }
     }
@@ -148,6 +183,9 @@ public class SenderEngine {
         public void send(Command command);
 
 
-        public Result receive() throws InterruptedException;
+        public Result receive() throws InterruptedException, IOException;
+
+
+        String getRemoteId();
     }
 }
