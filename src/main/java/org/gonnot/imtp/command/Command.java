@@ -4,7 +4,7 @@ import jade.core.Node;
 import jade.core.PlatformManager;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
-import org.gonnot.imtp.engine.CommandSenderEngine.WebSocketGlue;
+import org.gonnot.imtp.engine.SenderEngine.WebSocketGlue;
 /**
  *
  */

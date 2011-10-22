@@ -13,15 +13,15 @@ import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
-public class CommandSenderEngine {
-    private static final Logger LOG = Logger.getLogger(CommandSenderEngine.class);
+public class SenderEngine {
+    private static final Logger LOG = Logger.getLogger(SenderEngine.class);
     private WebSocketGlue webSocket;
     private WebSocketReader webSocketReader = new WebSocketReader();
     private Map<Integer, ResultPointer> activeCommands
           = Collections.synchronizedMap(new HashMap<Integer, ResultPointer>());
 
 
-    public CommandSenderEngine(WebSocketGlue webSocket) {
+    public SenderEngine(WebSocketGlue webSocket) {
         this.webSocket = webSocket;
         LOG.info("start IMTP ClientEngine...");
         webSocketReader.start();

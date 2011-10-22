@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
-import org.gonnot.imtp.engine.CommandSenderEngine.WebSocketGlue;
+import org.gonnot.imtp.engine.SenderEngine.WebSocketGlue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,9 +21,9 @@ import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
 import static net.codjo.test.common.matcher.JUnitMatchers.is;
 import static org.gonnot.imtp.util.TestUtil.assertTrue;
 import static org.gonnot.imtp.util.TestUtil.threadStateIS;
-public class CommandSenderEngineTest {
+public class SenderEngineTest {
     @SuppressWarnings({"PublicField"}) @Rule public ExpectedException thrown = ExpectedException.none();
-    private CommandSenderEngine senderEngine;
+    private SenderEngine senderEngine;
     private WebSocketGlueMock channelMock;
     private ExecutorService executors;
 
@@ -31,7 +31,7 @@ public class CommandSenderEngineTest {
     @Before
     public void setUp() throws Exception {
         channelMock = new WebSocketGlueMock();
-        senderEngine = new CommandSenderEngine(channelMock);
+        senderEngine = new SenderEngine(channelMock);
     }
 
 
