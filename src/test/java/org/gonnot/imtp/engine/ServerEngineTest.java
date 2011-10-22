@@ -15,7 +15,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
-import static net.codjo.test.common.matcher.JUnitMatchers.fail;
 import static net.codjo.test.common.matcher.JUnitMatchers.is;
 import static net.codjo.test.common.matcher.JUnitMatchers.notNullValue;
 import static org.gonnot.imtp.util.TestUtil.acquire;
@@ -140,18 +139,6 @@ public class ServerEngineTest {
 
         assertThat(webSocket.resultForCommand(firstCommandWaitForSecond), is("1"));
         assertThat(webSocket.resultForCommand(secondCommand), is("2"));
-    }
-
-
-    @Test
-    public void test_unknownCommand() throws Exception {
-        fail("to be done");
-    }
-
-
-    @Test
-    public void test_unableToSendResult() throws Exception {
-        fail("to be done");
     }
 
 
