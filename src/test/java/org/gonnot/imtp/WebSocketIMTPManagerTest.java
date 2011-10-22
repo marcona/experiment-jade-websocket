@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) - codjo.net framework (2011) - All rights reserved.
+ *
+ * This software is published under the terms of the Apache Software
+ * License version 2.0, a copy of which has been included with this
+ * distribution in the LICENSE.txt file.
+ */
+
 package org.gonnot.imtp;
 import jade.core.GenericCommand;
 import jade.core.HorizontalCommand;
@@ -22,7 +30,6 @@ import org.gonnot.imtp.mock.SliceMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
 import static net.codjo.test.common.matcher.JUnitMatchers.fail;
 import static net.codjo.test.common.matcher.JUnitMatchers.is;

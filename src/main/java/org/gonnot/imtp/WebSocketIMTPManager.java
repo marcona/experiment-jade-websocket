@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) - codjo.net framework (2011) - All rights reserved.
+ *
+ * This software is published under the terms of the Apache Software
+ * License version 2.0, a copy of which has been included with this
+ * distribution in the LICENSE.txt file.
+ */
+
 package org.gonnot.imtp;
 import jade.core.IMTPException;
 import jade.core.IMTPManager;
@@ -13,7 +21,6 @@ import jade.util.leap.List;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.apache.log4j.Logger;
-
 import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
