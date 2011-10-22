@@ -49,7 +49,7 @@ public class ServerEngineTest {
                 return "result of my command";
             }
         };
-        webSocket.mockCommandArrival(myCommand);
+        webSocket.pushCommand(myCommand);
 
         waitForServerReply();
 
@@ -62,7 +62,7 @@ public class ServerEngineTest {
     public void test_commandParameter() throws Exception {
         serverEngine.init(new PlatformManagerMock(), new NodeMock("local"));
 
-        webSocket.mockCommandArrival(new Command<String>() {
+        webSocket.pushCommand(new Command<String>() {
             @Override
             public String execute(PlatformManager platformManager, Node localNode) {
                 return "result using parameters (" + className(platformManager) + ", " + className(localNode) + ")";
@@ -77,8 +77,8 @@ public class ServerEngineTest {
 
     @Test
     public void test_multipleCommand() throws Exception {
-        webSocket.mockCommandArrival(new DummyCommand(10));
-        webSocket.mockCommandArrival(new DummyCommand(20));
+        webSocket.pushCommand(new DummyCommand(10));
+        webSocket.pushCommand(new DummyCommand(20));
 
         waitForServerReply(2);
 
@@ -99,7 +99,7 @@ public class ServerEngineTest {
 
     @Test
     public void test_commandFailure() throws Exception {
-        webSocket.mockCommandArrival(new Command<String>() {
+        webSocket.pushCommand(new Command<String>() {
             @Override
             public String execute(PlatformManager platformManager, Node localNode) throws ServiceException {
                 throw new ServiceException("I failed...");
@@ -132,8 +132,8 @@ public class ServerEngineTest {
             }
         };
 
-        webSocket.mockCommandArrival(firstCommandWaitForSecond);
-        webSocket.mockCommandArrival(secondCommand);
+        webSocket.pushCommand(firstCommandWaitForSecond);
+        webSocket.pushCommand(secondCommand);
 
         waitForServerReply(2);
 
@@ -173,7 +173,7 @@ public class ServerEngineTest {
         }
 
 
-        public void mockCommandArrival(Command mockedResponse) {
+        public void pushCommand(Command mockedResponse) {
             commands.insertElementAt(mockedResponse, 0);
             waitForCommand.release();
         }
