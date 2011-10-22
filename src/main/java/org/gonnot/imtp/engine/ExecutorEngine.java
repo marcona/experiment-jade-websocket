@@ -1,6 +1,7 @@
 package org.gonnot.imtp.engine;
 import jade.core.Node;
 import jade.core.PlatformManager;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.log4j.Logger;
@@ -12,28 +13,18 @@ import org.gonnot.imtp.command.Result;
 public class ExecutorEngine {
     private static final Logger LOG = Logger.getLogger(ExecutorEngine.class);
     private static final int EXECUTOR_THREAD_MAX_COUNT = 5;
-    private WebSocketReaderWriter socketReaderWriter = new WebSocketReaderWriter();
+    private SocketReaderThread socketReaderThread = new SocketReaderThread();
     private WebSocketGlue webSocket;
     private PlatformManager platformManager;
     private Node node;
+    private volatile boolean shutdownActivated = false;
 
 
     public ExecutorEngine(WebSocketGlue webSocket) {
         this.webSocket = webSocket;
 
-        LOG.info("bootstrap IMTP ServerEngine...");
-        socketReaderWriter.start();
-    }
-
-
-    public void shutdown() {
-        LOG.info("shutdown IMTP ServerEngine...");
-        socketReaderWriter.shutdown();
-    }
-
-
-    Thread getSocketReaderWriter() {
-        return socketReaderWriter;
+        LOG.info("start executor engine for " + this.webSocket.getRemoteClientId());
+        socketReaderThread.start();
     }
 
 
@@ -43,69 +34,93 @@ public class ExecutorEngine {
     }
 
 
-    public static interface WebSocketGlue {
-        public void send(Result result);
-
-
-        public Command receive() throws InterruptedException;
+    @SuppressWarnings({"ConstantConditions"})
+    private void handleIncomingCommands(ExecutorService executorService) {
+        while (!shutdownActivated) {
+            try {
+                final Command command = webSocket.receive();
+                executorService.execute(handleOneCommand(command));
+            }
+            catch (Throwable error) {
+                shutdown();
+            }
+        }
     }
-    private class WebSocketReaderWriter extends Thread {
-        private volatile boolean shutdownActivated = false;
+
+
+    private Runnable handleOneCommand(final Command command) {
+        return new Runnable() {
+            public void run() {
+                try {
+                    webSocket.send(executeCommand(command));
+                }
+                catch (Throwable error) {
+                    shutdown();
+                }
+            }
+        };
+    }
+
+
+    private Result executeCommand(Command command) {
+        try {
+            Object result = command.execute(platformManager, node);
+            return Result.value(result, command);
+        }
+        catch (Throwable e) {
+            return Result.failure(e, command);
+        }
+    }
+
+
+    public void shutdown() {
+        if (shutdownActivated) {
+            return;
+        }
+        LOG.info("stop executor engine of " + webSocket.getRemoteClientId());
+        shutdownActivated = true;
+        socketReaderThread.shutdownThreads();
+    }
+
+
+    boolean isShutdown() {
+        return shutdownActivated;
+    }
+
+
+    Thread getSocketReaderThread() {
+        return socketReaderThread;
+    }
+
+
+    public static interface WebSocketGlue {
+        public String getRemoteClientId();
+
+
+        public void send(Result result) throws IOException;
+
+
+        public Command receive() throws InterruptedException, IOException;
+    }
+    private class SocketReaderThread extends Thread {
         private ExecutorService executorService;
 
 
-        private WebSocketReaderWriter() {
-            super("WebSocketReaderWriter");
+        private SocketReaderThread() {
+            super("executor-engine");
         }
 
 
         @Override
         public void run() {
             executorService = Executors.newFixedThreadPool(EXECUTOR_THREAD_MAX_COUNT);
-            while (!shutdownActivated) {
-                Command command = null;
-                try {
-                    command = webSocket.receive();
-                    executorService.execute(new CommandExecutor(command));
-                }
-                catch (Throwable error) {
-                    if (shutdownActivated) {
-                        return;
-                    }
-                    webSocket.send(Result.failure(error, command));
-                }
-            }
+            handleIncomingCommands(executorService);
         }
 
 
-        public void shutdown() {
-            shutdownActivated = true;
-            executorService.shutdown();
+        void shutdownThreads() {
+            executorService.shutdownNow();
             super.interrupt();
-        }
-
-
-        private class CommandExecutor implements Runnable {
-            private Command command;
-
-
-            CommandExecutor(Command command) {
-                this.command = command;
-            }
-
-
-            public void run() {
-                try {
-                    Object commandResult = command.execute(platformManager, node);
-                    webSocket.send(Result.value(commandResult, command.getCommandId()));
-                }
-                catch (Throwable error) {
-                    if (shutdownActivated) {
-                        return;
-                    }
-                    webSocket.send(Result.failure(error, command));
-                }
-            }
         }
     }
 }

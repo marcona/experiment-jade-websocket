@@ -8,7 +8,6 @@ import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
 import websocket4j.server.WebServerSocket;
 import websocket4j.server.WebSocket;
-
 import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
@@ -65,12 +64,12 @@ class IMTPMain implements Runnable {
     }
 
 
-    private void handleErrorDisplay(Throwable e, String normalExit, String failingExit) {
+    private void handleErrorDisplay(Throwable error, String normalExit, String failingExit) {
         if (closing) {
             LOG.info(normalExit);
         }
         else {
-            LOG.error(failingExit, e);
+            LOG.error(failingExit, error);
         }
     }
 
@@ -79,7 +78,9 @@ class IMTPMain implements Runnable {
         while (true) {
             WebSocket ws = socketServer.accept();
             if (PLATFORM_URI.equals(ws.getRequestUri())) {
-                LOG.info("New connection request - GET " + ws.getRequestUri());
+                LOG.info("New connection request -"
+                         + " GET " + ws.getRequestUri()
+                         + " from " + ws.getRemoteSocketAddressId());
                 (new PlatformManagerProxyReader(ws)).start();
             }
             else {

@@ -82,6 +82,11 @@ public class WebSocket extends AbstractWebSocket {
     }
 
 
+    public String getRemoteSocketAddressId() {
+        return socket.getRemoteSocketAddress().toString();
+    }
+
+
     /**
      * Performs an opening handshake with the client. If this method completes successfully, a connection with the
      * client is established.

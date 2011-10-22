@@ -41,6 +41,12 @@ public class Result {
     }
 
 
+    public static Result value(Object result, Command command) {
+        // todo
+        return value(result, command.getCommandId());
+    }
+
+
     public static Result value(Object result, int commandId) {
         // todo
         return new Result(null, result, commandId);

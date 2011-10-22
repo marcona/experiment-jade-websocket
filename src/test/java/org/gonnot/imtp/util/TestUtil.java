@@ -4,6 +4,7 @@ import java.util.concurrent.Semaphore;
 import net.codjo.agent.test.AgentAssert;
 import net.codjo.agent.test.AgentAssert.Assertion;
 import net.codjo.agent.test.AgentContainerFixture;
+import net.codjo.test.common.LogString;
 import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
 import static net.codjo.test.common.matcher.JUnitMatchers.is;
 /**
@@ -29,6 +30,15 @@ public class TestUtil {
         return new Assertion() {
             public void check() throws Throwable {
                 assertThat(thread.getState(), is(state));
+            }
+        };
+    }
+
+
+    public static Assertion logStringIs(final LogString log, final String expected) {
+        return new Assertion() {
+            public void check() throws Throwable {
+                assertThat(log.getContent(), is(expected));
             }
         };
     }

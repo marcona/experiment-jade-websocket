@@ -2,15 +2,18 @@ package org.gonnot.imtp.engine;
 import jade.core.Node;
 import jade.core.PlatformManager;
 import jade.core.ServiceException;
+import java.io.IOException;
 import java.lang.Thread.State;
 import java.util.Stack;
 import java.util.concurrent.Semaphore;
 import net.codjo.agent.test.AgentAssert.Assertion;
+import net.codjo.test.common.LogString;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
 import org.gonnot.imtp.engine.ExecutorEngine.WebSocketGlue;
 import org.gonnot.imtp.mock.NodeMock;
 import org.gonnot.imtp.mock.PlatformManagerMock;
+import org.gonnot.imtp.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +45,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_simpleCommand() throws Exception {
+    public void test_simpleCommandExecution() throws Exception {
         Command myCommand = new Command<String>() {
             @Override
             public String execute(PlatformManager platformManager, Node localNode) {
@@ -59,7 +62,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_commandParameter() throws Exception {
+    public void test_commandParameters() throws Exception {
         executorEngine.init(new PlatformManagerMock(), new NodeMock("local"));
 
         webSocket.pushCommand(new Command<String>() {
@@ -76,7 +79,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_multipleCommand() throws Exception {
+    public void test_multiThreadExecution() throws Exception {
         webSocket.pushCommand(new DummyCommand(10));
         webSocket.pushCommand(new DummyCommand(20));
 
@@ -88,33 +91,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_shutdown() throws Exception {
-        assertTrue(threadStateIS(executorEngine.getSocketReaderWriter(), State.WAITING));
-
-        executorEngine.shutdown();
-
-        assertTrue(threadStateIS(executorEngine.getSocketReaderWriter(), State.TERMINATED));
-    }
-
-
-    @Test
-    public void test_commandFailure() throws Exception {
-        webSocket.pushCommand(new Command<String>() {
-            @Override
-            public String execute(PlatformManager platformManager, Node localNode) throws ServiceException {
-                throw new ServiceException("I failed...");
-            }
-        });
-
-        waitForServerReply();
-
-        assertThat(webSocket.lastResult().hasFailed(), is(true));
-        assertThat(webSocket.lastResult().getFailure().getMessage(), is("I failed..."));
-    }
-
-
-    @Test
-    public void test_multiThreadExecution() throws Exception {
+    public void test_multiThreadExecution_bug() throws Exception {
         final Semaphore semaphore = new Semaphore(0);
 
         Command<String> firstCommandWaitForSecond = new Command<String>() {
@@ -142,6 +119,82 @@ public class ExecutorEngineTest {
     }
 
 
+    @Test
+    public void test_shutdown() throws Exception {
+        assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.WAITING));
+
+        executorEngine.shutdown();
+
+        assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.TERMINATED));
+        assertThat(executorEngine.isShutdown(), is(true));
+    }
+
+
+    @Test
+    public void test_shutdown_stopCommandExecution() throws Exception {
+        final LogString logString = new LogString();
+        final Semaphore semaphore = new Semaphore(0);
+
+        webSocket.pushCommand(new Command<String>() {
+            @Override
+            public String execute(PlatformManager platformManager, Node localNode) {
+                logString.info("start running...");
+                semaphore.release();
+                try {
+                    Thread.sleep(2000);
+                }
+                catch (InterruptedException e) {
+                    logString.info("...but interrupted");
+                    return null;
+                }
+                logString.info("should never be displayed (executors are destroyed)");
+                return null;
+            }
+        });
+
+        semaphore.acquire();
+        executorEngine.shutdown();
+
+        assertTrue(TestUtil.logStringIs(logString, "start running..., ...but interrupted"));
+    }
+
+
+    @Test
+    public void test_commandFailure() throws Exception {
+        webSocket.pushCommand(new Command<String>() {
+            @Override
+            public String execute(PlatformManager platformManager, Node localNode) throws ServiceException {
+                throw new ServiceException("I failed...");
+            }
+        });
+
+        waitForServerReply();
+
+        assertThat(webSocket.lastResult().hasFailed(), is(true));
+        assertThat(webSocket.lastResult().getFailure().getMessage(), is("I failed..."));
+    }
+
+
+    @Test
+    public void test_webSocketFailureCauseShutdown_command() throws Exception {
+        webSocket.pushFailureDuringReadingCommand(new IOException("mock socket closure"));
+
+        assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.TERMINATED));
+        assertThat(executorEngine.isShutdown(), is(true));
+    }
+
+
+    @Test
+    public void test_webSocketFailureCauseShutdown_result() throws Exception {
+        webSocket.pushFailureDuringResultPost(new IOException("mock socket closure"));
+
+        webSocket.pushCommand(new DummyCommand());
+
+        assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.TERMINATED));
+        assertThat(executorEngine.isShutdown(), is(true));
+    }
+
+
     private void waitForServerReply() {
         waitForServerReply(1);
     }
@@ -160,15 +213,29 @@ public class ExecutorEngineTest {
         private Semaphore waitForCommand = new Semaphore(0);
         private Stack<Command> commands = new Stack<Command>();
         private Stack<Result> sentResults = new Stack<Result>();
+        private IOException socketFailure;
+        private boolean sendFailure = false;
+        private boolean receiveFailure = false;
 
 
-        public void send(Result result) {
+        public String getRemoteClientId() {
+            return "/127.0.0.1:52686";
+        }
+
+
+        public void send(Result result) throws IOException {
+            if (sendFailure) {
+                throw socketFailure;
+            }
             sentResults.insertElementAt(result, 0);
         }
 
 
-        public Command receive() throws InterruptedException {
+        public Command receive() throws InterruptedException, IOException {
             waitForCommand.acquire();
+            if (receiveFailure) {
+                throw socketFailure;
+            }
             return commands.pop();
         }
 
@@ -212,6 +279,19 @@ public class ExecutorEngineTest {
 
         public String resultForCommand(Command command) {
             return resultForCommand(command.getCommandId());
+        }
+
+
+        public void pushFailureDuringReadingCommand(IOException failure) {
+            receiveFailure = true;
+            this.socketFailure = failure;
+            waitForCommand.release();
+        }
+
+
+        public void pushFailureDuringResultPost(IOException failure) {
+            sendFailure = true;
+            this.socketFailure = failure;
         }
     }
 }
