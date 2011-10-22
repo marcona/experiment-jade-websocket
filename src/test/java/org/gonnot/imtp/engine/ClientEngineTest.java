@@ -77,14 +77,16 @@ public class ClientEngineTest {
     public void test_commandExecutionAreMultiThreaded() throws Exception {
         executors = Executors.newFixedThreadPool(2);
 
-        Future<String> firstResult = executors.submit(commandExecution(aCommand(1)));
-        Future<String> secondResult = executors.submit(commandExecution(aCommand(2)));
+        Future<String> firstResult = executors.submit(commandExecution(aCommand(10)));
+        Future<String> secondResult = executors.submit(commandExecution(aCommand(20)));
 
-        mockServerResponse(Result.value("answer 2", 2));
-        mockServerResponse(Result.value("answer 1", 1));
+        channelMock.waitForSubmitedCommandCount(2);
 
-        assertThat(firstResult.get(), is("answer 1"));
-        assertThat(secondResult.get(), is("answer 2"));
+        mockServerResponse(Result.value("answer 20", 20));
+        mockServerResponse(Result.value("answer 10", 10));
+
+        assertThat(firstResult.get(), is("answer 10"));
+        assertThat(secondResult.get(), is("answer 20"));
     }
 
 
@@ -175,13 +177,15 @@ public class ClientEngineTest {
 
 
     private class ClientWebSocketMock implements ClientWebSocket {
-        private Semaphore waitCommandSent = new Semaphore(0, true);
+        private Semaphore commandReceived = new Semaphore(0);
+        private Semaphore waitCommandSent = new Semaphore(0);
         private Semaphore waitResults = new Semaphore(0);
         private Stack<Result> results = new Stack<Result>();
 
 
         public void send(Command command) {
             waitCommandSent.release();
+            commandReceived.release();
         }
 
 
@@ -192,9 +196,14 @@ public class ClientEngineTest {
         }
 
 
-        public void mockResponse(Result mockedResponse) {
-            results.insertElementAt(mockedResponse, 0);
+        public void mockResponse(Result result) {
+            results.insertElementAt(result, 0);
             waitResults.release();
+        }
+
+
+        public void waitForSubmitedCommandCount(int expectedCommandCount) throws InterruptedException {
+            commandReceived.acquire(expectedCommandCount);
         }
     }
 }

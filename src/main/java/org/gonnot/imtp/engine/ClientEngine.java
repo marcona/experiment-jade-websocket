@@ -40,6 +40,7 @@ public class ClientEngine {
 
         resultPointer.acquire();
 
+        activeCommands.remove(command.getCommandId());
         Result result = resultPointer.getResult();
 
         if (result.hasFailed()) {
@@ -93,7 +94,7 @@ public class ClientEngine {
 
                     ResultPointer resultPointer = activeCommands.get(result.getCommandId());
                     if (resultPointer == null) {
-                        LOG.error("Received a result for an unknown request : " + result);
+                        LOG.error("Received a result for an unknown request(" + result.getCommandId() + ") " + result);
                         continue;
                     }
 

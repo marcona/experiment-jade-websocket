@@ -42,4 +42,14 @@ public class TestUtil {
             throw new RuntimeException("Unexpected InterruptedException");
         }
     }
+
+
+    public static void sleep(int waitTime) {
+        try {
+            Thread.sleep(waitTime);
+        }
+        catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
