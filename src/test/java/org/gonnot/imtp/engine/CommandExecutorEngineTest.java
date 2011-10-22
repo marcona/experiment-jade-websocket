@@ -8,7 +8,7 @@ import java.util.concurrent.Semaphore;
 import net.codjo.agent.test.AgentAssert.Assertion;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
-import org.gonnot.imtp.engine.ServerEngine.ServerWebSocket;
+import org.gonnot.imtp.engine.CommandExecutorEngine.ServerWebSocket;
 import org.gonnot.imtp.mock.NodeMock;
 import org.gonnot.imtp.mock.PlatformManagerMock;
 import org.junit.After;
@@ -24,20 +24,20 @@ import static org.gonnot.imtp.util.TestUtil.threadStateIS;
 /**
  *
  */
-public class ServerEngineTest {
+public class CommandExecutorEngineTest {
     private ServerWebSocketMock webSocket = new ServerWebSocketMock();
-    private ServerEngine serverEngine;
+    private CommandExecutorEngine executorEngine;
 
 
     @Before
     public void setUp() throws Exception {
-        serverEngine = new ServerEngine(webSocket);
+        executorEngine = new CommandExecutorEngine(webSocket);
     }
 
 
     @After
     public void tearDown() throws Exception {
-        serverEngine.shutdown();
+        executorEngine.shutdown();
     }
 
 
@@ -60,7 +60,7 @@ public class ServerEngineTest {
 
     @Test
     public void test_commandParameter() throws Exception {
-        serverEngine.init(new PlatformManagerMock(), new NodeMock("local"));
+        executorEngine.init(new PlatformManagerMock(), new NodeMock("local"));
 
         webSocket.pushCommand(new Command<String>() {
             @Override
@@ -89,11 +89,11 @@ public class ServerEngineTest {
 
     @Test
     public void test_shutdown() throws Exception {
-        assertTrue(threadStateIS(serverEngine.getSocketReaderWriter(), State.WAITING));
+        assertTrue(threadStateIS(executorEngine.getSocketReaderWriter(), State.WAITING));
 
-        serverEngine.shutdown();
+        executorEngine.shutdown();
 
-        assertTrue(threadStateIS(serverEngine.getSocketReaderWriter(), State.TERMINATED));
+        assertTrue(threadStateIS(executorEngine.getSocketReaderWriter(), State.TERMINATED));
     }
 
 

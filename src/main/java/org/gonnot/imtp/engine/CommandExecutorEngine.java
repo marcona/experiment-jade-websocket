@@ -9,8 +9,8 @@ import org.gonnot.imtp.command.Result;
 /**
  *
  */
-public class ServerEngine {
-    private static final Logger LOG = Logger.getLogger(ServerEngine.class);
+public class CommandExecutorEngine {
+    private static final Logger LOG = Logger.getLogger(CommandExecutorEngine.class);
     private static final int EXECUTOR_THREAD_MAX_COUNT = 5;
     private WebSocketReaderWriter socketReaderWriter = new WebSocketReaderWriter();
     private ServerWebSocket serverWebSocket;
@@ -18,7 +18,7 @@ public class ServerEngine {
     private Node node;
 
 
-    public ServerEngine(ServerWebSocket serverWebSocket) {
+    public CommandExecutorEngine(ServerWebSocket serverWebSocket) {
         this.serverWebSocket = serverWebSocket;
 
         LOG.info("bootstrap IMTP ServerEngine...");

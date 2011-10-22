@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
-import org.gonnot.imtp.engine.ClientEngine.ClientWebSocket;
+import org.gonnot.imtp.engine.CommandSenderEngine.ClientWebSocket;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,9 +21,9 @@ import static net.codjo.test.common.matcher.JUnitMatchers.assertThat;
 import static net.codjo.test.common.matcher.JUnitMatchers.is;
 import static org.gonnot.imtp.util.TestUtil.assertTrue;
 import static org.gonnot.imtp.util.TestUtil.threadStateIS;
-public class ClientEngineTest {
+public class CommandSenderEngineTest {
     @SuppressWarnings({"PublicField"}) @Rule public ExpectedException thrown = ExpectedException.none();
-    private ClientEngine clientEngine;
+    private CommandSenderEngine senderEngine;
     private ClientWebSocketMock channelMock;
     private ExecutorService executors;
 
@@ -31,7 +31,7 @@ public class ClientEngineTest {
     @Before
     public void setUp() throws Exception {
         channelMock = new ClientWebSocketMock();
-        clientEngine = new ClientEngine(channelMock);
+        senderEngine = new CommandSenderEngine(channelMock);
     }
 
 
@@ -40,7 +40,7 @@ public class ClientEngineTest {
         if (executors != null) {
             executors.shutdown();
         }
-        clientEngine.shutdown();
+        senderEngine.shutdown();
     }
 
 
@@ -50,7 +50,7 @@ public class ClientEngineTest {
 
         mockServerResponse("answer from server", command);
 
-        String result = clientEngine.execute(command);
+        String result = senderEngine.execute(command);
 
         assertThat(result, is("answer from server"));
     }
@@ -67,7 +67,7 @@ public class ClientEngineTest {
 
         mockServerResponse("answer from server", command);
 
-        String result = clientEngine.execute(command);
+        String result = senderEngine.execute(command);
 
         assertThat(result, is("answer from server - updated on the client side"));
     }
@@ -93,7 +93,7 @@ public class ClientEngineTest {
     private Callable<String> commandExecution(final Command<String> command) {
         return new Callable<String>() {
             public String call() throws Exception {
-                return clientEngine.execute(command);
+                return senderEngine.execute(command);
             }
         };
     }
@@ -105,11 +105,11 @@ public class ClientEngineTest {
 
         thrown.expectMessage("IMTP connection has been shutdown.");
 
-        clientEngine.shutdown();
+        senderEngine.shutdown();
 
-        assertTrue(threadStateIS(clientEngine.getWebSocketReader(), State.TERMINATED));
+        assertTrue(threadStateIS(senderEngine.getWebSocketReader(), State.TERMINATED));
 
-        clientEngine.execute(aCommand());
+        senderEngine.execute(aCommand());
     }
 
 
@@ -152,7 +152,7 @@ public class ClientEngineTest {
         thrown.expect(resultingError);
         thrown.expectMessage(resultingMessage);
 
-        clientEngine.execute(command);
+        senderEngine.execute(command);
     }
 
 

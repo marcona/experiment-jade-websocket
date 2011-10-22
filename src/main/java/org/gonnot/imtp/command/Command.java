@@ -4,7 +4,7 @@ import jade.core.Node;
 import jade.core.PlatformManager;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
-import org.gonnot.imtp.engine.ClientEngine.ClientWebSocket;
+import org.gonnot.imtp.engine.CommandSenderEngine.ClientWebSocket;
 /**
  *
  */
