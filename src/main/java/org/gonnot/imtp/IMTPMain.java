@@ -12,26 +12,28 @@ import jade.core.Node;
 import jade.core.PlatformManager;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
+import org.gonnot.imtp.engine.ExecutorEngine;
+import org.gonnot.imtp.engine.ExecutorEngine.WebSocketGlue;
 import websocket4j.server.WebServerSocket;
 import websocket4j.server.WebSocket;
+import static java.util.Collections.synchronizedList;
 import static org.gonnot.imtp.util.JadeExceptionUtil.imtpException;
 /**
  *
  */
-class IMTPMain implements Runnable {
+class IMTPMain {
     private static final Logger LOG = Logger.getLogger(IMTPMain.class);
     static final String PLATFORM_URI = "/platform";
 
     private PlatformManager platformManager;
     private WebServerSocket socketServer;
-    private boolean closing;
+    private volatile boolean closing;
     private Node localNode;
-    private List<WebSocket> activeSockets = Collections.synchronizedList(new ArrayList<WebSocket>());
+    private List<ExecutorEngine> activeClientConnection = synchronizedList(new ArrayList<ExecutorEngine>());
 
 
     IMTPMain(Node localNode) {
@@ -44,10 +46,10 @@ class IMTPMain implements Runnable {
     }
 
 
-    public void start(String localHost, int port) throws IMTPException {
+    public void start(int port) throws IMTPException {
         try {
             socketServer = new WebServerSocket(port);
-            new Thread(this).start();
+            new HandleSocketServerThread().start();
         }
         catch (IOException e) {
             throw imtpException("Unable to start the WebSocket server", e);
@@ -55,27 +57,22 @@ class IMTPMain implements Runnable {
     }
 
 
-    public void run() {
-        try {
-            handleClientContainerFirstConnection();
-        }
-        catch (Throwable e) {
-            handleErrorDisplay(e, "WebSocket IMTP is closed", "Unexpected Error (WebSocket IMTP is down)");
-        }
-    }
-
-
-    public void handleClientContainerFirstConnection() throws IOException {
-        while (true) {
-            WebSocket ws = socketServer.accept();
-            if (PLATFORM_URI.equals(ws.getRequestUri())) {
-                LOG.info("New connection request - GET " + ws.getRequestUri() + " from " + ws.getRemoteId());
-                activeSockets.add(ws);
-                (new PlatformManagerProxyReader(ws)).start();
+    public void handleIncomingClientConnection() throws IOException {
+        while (!closing) {
+            final WebSocket clientWebSocket = socketServer.accept();
+            if (closing) {
+                silentClose(clientWebSocket);
+                return;
+            }
+            if (PLATFORM_URI.equals(clientWebSocket.getRequestUri())) {
+                LOG.info("New connection request - GET " + clientWebSocket.getRequestUri()
+                         + " from " + clientWebSocket.getRemoteId());
+                new ExecutorEngine(new WebSocketGlueImpl(clientWebSocket)).init(platformManager, localNode);
             }
             else {
-                LOG.warn("Unsupported request - GET " + ws.getRequestUri());
-                silentClose(ws);
+                LOG.warn("Unsupported request - GET " + clientWebSocket.getRequestUri()
+                         + " from " + clientWebSocket.getRemoteId());
+                silentClose(clientWebSocket);
             }
         }
     }
@@ -85,24 +82,24 @@ class IMTPMain implements Runnable {
         if (closing) {
             return;
         }
-        LOG.info("Shutdown IMTP main servers and all active connections...");
+        LOG.info("Shutdown IMTP main server and all active connections...");
         closing = true;
+
+        for (ExecutorEngine engine : copyOf(activeClientConnection)) {
+            safeShutdown(engine);
+        }
+
         try {
             socketServer.close();
         }
         catch (IOException e) {
             throw new IllegalStateException("Unable to stop the WebSocket server", e);
         }
-        finally {
-            for (WebSocket socket : copyOf(activeSockets)) {
-                silentClose(socket);
-            }
-        }
     }
 
 
     int getActiveConnectionCount() {
-        return activeSockets.size();
+        return activeClientConnection.size();
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -130,53 +127,71 @@ class IMTPMain implements Runnable {
     }
 
 
-    private static WebSocket[] copyOf(List<WebSocket> sockets) {
-        return sockets.toArray(new WebSocket[sockets.size()]);
+    private static void safeShutdown(ExecutorEngine engine) {
+        try {
+            engine.shutdown();
+        }
+        catch (Throwable e) {
+            LOG.warn("Engine shutdown in error (IMTP shutdown will continue)", e);
+        }
+    }
+
+
+    private static ExecutorEngine[] copyOf(List<ExecutorEngine> sockets) {
+        return sockets.toArray(new ExecutorEngine[sockets.size()]);
     }
 
     // -----------------------------------------------------------------------------------------------------------------
-    // Multi-Threads glue
+    // Utility classes
     // -----------------------------------------------------------------------------------------------------------------
 
-    private class PlatformManagerProxyReader extends Thread {
-        private WebSocket webSocket;
+    private class WebSocketGlueImpl implements WebSocketGlue {
+        private final WebSocket webSocket;
 
 
-        PlatformManagerProxyReader(WebSocket webSocket) {
+        WebSocketGlueImpl(WebSocket webSocket) {
             this.webSocket = webSocket;
+        }
+
+
+        public String getRemoteClientId() {
+            return webSocket.getRemoteId();
+        }
+
+
+        public void send(Result result) throws IOException {
+            webSocket.sendMessage(CommandCodec.encode(result));
+        }
+
+
+        public Command receive() throws InterruptedException, IOException {
+            return CommandCodec.decode(webSocket.getMessage());
+        }
+
+
+        public void open(ExecutorEngine engine) {
+            activeClientConnection.add(engine);
+        }
+
+
+        public void close(ExecutorEngine engine) {
+            silentClose(webSocket);
+            activeClientConnection.remove(engine);
+        }
+    }
+    private class HandleSocketServerThread extends Thread {
+        private HandleSocketServerThread() {
+            super("incoming-connection-listener");
         }
 
 
         @Override
         public void run() {
             try {
-                handleConnection();
+                handleIncomingClientConnection();
             }
             catch (Throwable e) {
-                handleErrorDisplay(e,
-                                   "WebSocket IMTP (PlatformManagerProxyReader) is closed",
-                                   "Unexpected Error in PlatformManagerProxyReader (Local node has been pushed out of the platform)");
-            }
-            finally {
-                silentClose(webSocket);
-            }
-        }
-
-
-        private void handleConnection() throws IOException {
-            while (true) {
-                Command command = CommandCodec.decode(webSocket.getMessage());
-                webSocket.sendMessage(CommandCodec.encode(executeCommand(command)));
-            }
-        }
-
-
-        private Result executeCommand(Command command) {
-            try {
-                return Result.value(command.execute(platformManager, localNode), command);
-            }
-            catch (Throwable e) {
-                return Result.failure(e);
+                handleErrorDisplay(e, "WebSocket IMTP is closed", "Unexpected Error (WebSocket IMTP is down)");
             }
         }
     }

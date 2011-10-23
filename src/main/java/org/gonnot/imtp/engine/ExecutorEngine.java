@@ -30,6 +30,7 @@ public class ExecutorEngine {
 
     public ExecutorEngine(WebSocketGlue webSocket) {
         this.webSocket = webSocket;
+        this.webSocket.open(this);
 
         LOG.info("start executor engine for " + this.webSocket.getRemoteClientId());
         socketReaderThread.start();
@@ -85,10 +86,10 @@ public class ExecutorEngine {
         if (shutdownActivated) {
             return;
         }
-        LOG.info("stop executor engine of " + webSocket.getRemoteClientId());
         shutdownActivated = true;
+        LOG.info("stop executor engine of " + webSocket.getRemoteClientId());
         socketReaderThread.shutdownThreads();
-        webSocket.close();
+        webSocket.close(this);
     }
 
 
@@ -103,16 +104,19 @@ public class ExecutorEngine {
 
 
     public static interface WebSocketGlue {
-        public String getRemoteClientId();
-
-
         public void send(Result result) throws IOException;
 
 
         public Command receive() throws InterruptedException, IOException;
 
 
-        void close();
+        void open(ExecutorEngine engine);
+
+
+        void close(ExecutorEngine engine);
+
+
+        public String getRemoteClientId();
     }
     private class SocketReaderThread extends Thread {
         private ExecutorService executorService;
@@ -120,12 +124,12 @@ public class ExecutorEngine {
 
         private SocketReaderThread() {
             super("executor-engine");
+            executorService = Executors.newFixedThreadPool(EXECUTOR_THREAD_MAX_COUNT);
         }
 
 
         @Override
         public void run() {
-            executorService = Executors.newFixedThreadPool(EXECUTOR_THREAD_MAX_COUNT);
             handleIncomingCommands(executorService);
         }
 

@@ -10,7 +10,6 @@ import jade.core.IMTPException;
 import jade.core.ServiceException;
 import jade.security.JADESecurityException;
 import java.io.IOException;
-import java.net.SocketException;
 import net.codjo.agent.test.AgentAssert.Assertion;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
@@ -42,7 +41,7 @@ public class IMTPMainTest {
         NodeMock node = new NodeMock("local-server-node");
         imtp = new IMTPMain(node);
 
-        imtp.start("unused", TestUtil.SERVER_PORT);
+        imtp.start(TestUtil.SERVER_PORT);
     }
 
 
@@ -106,26 +105,30 @@ public class IMTPMainTest {
 
 
     @Test
-    public void test_shutdown_triggeredByBadCommandMessageFormat() throws Exception {
+    public void test_activeConnectionsUpdatedWhen_badCommandFormat() throws Exception {
         startClient();
 
-        clientWebSocket.sendMessage("message");
-        String result = clientWebSocket.getMessage();
+        clientWebSocket.sendMessage("bad xml format");
 
-        assertThat(result, is("a result"));
+        assertTrue(activeConnectionCountIs(0));
     }
 
 
     @Test
     public void test_shutdown_closeAllActiveConnection() throws Exception {
-        thrown.expect(SocketException.class);
-        thrown.expectMessage("Broken pipe");
+        thrown.expect(IOException.class);
+        thrown.expectMessage("End of stream");
 
         startClient();
 
+        assertTrue(activeConnectionCountIs(1));
+
         imtp.shutDown();
 
-        clientWebSocket.sendMessage("message not sent because connection is closed");
+        assertTrue(activeConnectionCountIs(0));
+
+        // Will fail because connection is closed
+        clientWebSocket.getMessage();
     }
 
 

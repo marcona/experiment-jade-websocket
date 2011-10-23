@@ -233,6 +233,10 @@ public class ExecutorEngineTest {
         }
 
 
+        public void open(ExecutorEngine engine) {
+        }
+
+
         public void send(Result result) throws IOException {
             if (sendFailure) {
                 throw socketFailure;
@@ -250,7 +254,7 @@ public class ExecutorEngineTest {
         }
 
 
-        public void close() {
+        public void close(ExecutorEngine engine) {
             closed = true;
         }
 
