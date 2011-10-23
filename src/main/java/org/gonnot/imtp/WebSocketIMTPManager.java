@@ -49,7 +49,7 @@ public class WebSocketIMTPManager implements IMTPManager {
 
         if (isMain) {
             main = new IMTPMain(localNode);
-            main.start(localHost, localPort);
+            main.start(localPort);
         }
         else {
             peripheral = new IMTPPeripheral();
