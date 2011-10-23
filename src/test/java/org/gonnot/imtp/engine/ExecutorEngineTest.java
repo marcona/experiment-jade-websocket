@@ -53,7 +53,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_simpleCommandExecution() throws Exception {
+    public void test_commandExecution() throws Exception {
         Command myCommand = new Command<String>() {
             @Override
             public String execute(PlatformManager platformManager, Node localNode) {
@@ -70,7 +70,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_commandParameters() throws Exception {
+    public void test_parametersCanBeUsedDuringCommandExecution() throws Exception {
         executorEngine.init(new PlatformManagerMock(), new NodeMock("local"));
 
         webSocket.pushCommand(new Command<String>() {
@@ -87,7 +87,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_multiThreadExecution() throws Exception {
+    public void test_commandExecutionAreMultiThreaded() throws Exception {
         webSocket.pushCommand(new DummyCommand(10));
         webSocket.pushCommand(new DummyCommand(20));
 
@@ -99,7 +99,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_multiThreadExecution_bug() throws Exception {
+    public void test_commandExecutionAreMultiThreaded_bug() throws Exception {
         final Semaphore semaphore = new Semaphore(0);
 
         Command<String> firstCommandWaitForSecond = new Command<String>() {
@@ -128,7 +128,23 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_shutdown() throws Exception {
+    public void test_commandFailureArePropagated() throws Exception {
+        webSocket.pushCommand(new Command<String>() {
+            @Override
+            public String execute(PlatformManager platformManager, Node localNode) throws ServiceException {
+                throw new ServiceException("I failed...");
+            }
+        });
+
+        waitForServerReply();
+
+        assertThat(webSocket.lastResult().hasFailed(), is(true));
+        assertThat(webSocket.lastResult().getFailure().getMessage(), is("I failed..."));
+    }
+
+
+    @Test
+    public void test_shutdown_stopsThreads() throws Exception {
         assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.WAITING));
 
         executorEngine.shutdown();
@@ -139,7 +155,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_shutdown_stopCommandExecution() throws Exception {
+    public void test_shutdown_stopsCurrentCommandExecution() throws Exception {
         final LogString logString = new LogString();
         final Semaphore semaphore = new Semaphore(0);
 
@@ -168,23 +184,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_commandFailure() throws Exception {
-        webSocket.pushCommand(new Command<String>() {
-            @Override
-            public String execute(PlatformManager platformManager, Node localNode) throws ServiceException {
-                throw new ServiceException("I failed...");
-            }
-        });
-
-        waitForServerReply();
-
-        assertThat(webSocket.lastResult().hasFailed(), is(true));
-        assertThat(webSocket.lastResult().getFailure().getMessage(), is("I failed..."));
-    }
-
-
-    @Test
-    public void test_webSocketFailureCauseShutdown_command() throws Exception {
+    public void test_shutdown_isTriggeredByWebsocketReadingError() throws Exception {
         webSocket.pushFailureDuringReadingCommand(new IOException("mock socket closure"));
 
         assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.TERMINATED));
@@ -193,7 +193,7 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_webSocketFailureCauseShutdown_result() throws Exception {
+    public void test_shutdown_isTriggeredByWebsocketWritingError() throws Exception {
         webSocket.pushFailureDuringResultPost(new IOException("mock socket closure"));
 
         webSocket.pushCommand(new DummyCommand());

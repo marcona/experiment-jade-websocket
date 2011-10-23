@@ -54,7 +54,7 @@ public class SenderEngineTest {
 
 
     @Test
-    public void test_simpleRequest() throws Exception {
+    public void test_commandExecution() throws Exception {
         Command<String> command = aCommand();
 
         mockServerResponse("answer from server", command);
@@ -66,7 +66,7 @@ public class SenderEngineTest {
 
 
     @Test
-    public void test_serverResultCanBeUpdated() throws Exception {
+    public void test_serverResultCanBeLocallyUpdated() throws Exception {
         DummyCommand command = new DummyCommand() {
             @Override
             public String handle(WebSocketGlue clientWebSocket, String result) {
@@ -109,7 +109,32 @@ public class SenderEngineTest {
 
 
     @Test
-    public void test_shutdownRunner() throws Exception {
+    public void test_commandFailuresAreHandled_ImtpException() throws Exception {
+        checkErrorManagementFor(new IMTPException("Server Error"));
+    }
+
+
+    @Test
+    public void test_commandFailuresAreHandled_ServiceException() throws Exception {
+        checkErrorManagementFor(new ServiceException("Server Error"));
+    }
+
+
+    @Test
+    public void test_commandFailuresAreHandled_SecurityException() throws Exception {
+        checkErrorManagementFor(new JADESecurityException("Server Error"));
+    }
+
+
+    @Test
+    public void test_commandFailuresAreHandled_UnexpectedException() throws Exception {
+        checkErrorManagementFor(new NullPointerException("Server Error"),
+                                IMTPException.class, "Unexpected server error");
+    }
+
+
+    @Test
+    public void test_shutdown_stopsThreads() throws Exception {
         thrown.expect(IMTPException.class);
 
         thrown.expectMessage("IMTP connection has been shutdown.");
@@ -123,36 +148,11 @@ public class SenderEngineTest {
 
 
     @Test
-    public void test_shutdownBecauseOfCommunicationError() throws Exception {
+    public void test_shutdown_isTriggeredByCommunicationError() throws Exception {
         channelMock.mockNetworkFailure(new IOException("Reading error"));
 
         assertTrue(threadStateIS(senderEngine.getResultReader(), State.TERMINATED));
         assertThat(senderEngine.isShutdown(), is(true));
-    }
-
-
-    @Test
-    public void test_errorIMTPExceptionCase() throws Exception {
-        checkErrorManagementFor(new IMTPException("Server Error"));
-    }
-
-
-    @Test
-    public void test_errorServiceExceptionCase() throws Exception {
-        checkErrorManagementFor(new ServiceException("Server Error"));
-    }
-
-
-    @Test
-    public void test_errorJADESecurityExceptionCase() throws Exception {
-        checkErrorManagementFor(new JADESecurityException("Server Error"));
-    }
-
-
-    @Test
-    public void test_errorUnexpectedExceptionCase() throws Exception {
-        checkErrorManagementFor(new NullPointerException("Server Error"),
-                                IMTPException.class, "Unexpected server error");
     }
 
 
