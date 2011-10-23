@@ -88,6 +88,7 @@ public class ExecutorEngine {
         LOG.info("stop executor engine of " + webSocket.getRemoteClientId());
         shutdownActivated = true;
         socketReaderThread.shutdownThreads();
+        webSocket.close();
     }
 
 
@@ -109,6 +110,9 @@ public class ExecutorEngine {
 
 
         public Command receive() throws InterruptedException, IOException;
+
+
+        void close();
     }
     private class SocketReaderThread extends Thread {
         private ExecutorService executorService;

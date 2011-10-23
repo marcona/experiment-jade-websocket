@@ -82,7 +82,7 @@ public class WebSocket extends AbstractWebSocket {
     }
 
 
-    public String getRemoteSocketAddressId() {
+    public String getRemoteId() {
         return socket.getRemoteSocketAddress().toString();
     }
 

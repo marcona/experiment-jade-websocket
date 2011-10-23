@@ -16,15 +16,15 @@ import org.gonnot.imtp.command.Command;
 /**
  *
  */
-class DummyCommand extends Command<String> {
+public class DummyCommand extends Command<String> {
     private int id = -1;
 
 
-    DummyCommand() {
+    public DummyCommand() {
     }
 
 
-    DummyCommand(int id) {
+    public DummyCommand(int id) {
         this.id = id;
     }
 

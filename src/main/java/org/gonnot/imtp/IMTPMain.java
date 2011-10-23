@@ -11,6 +11,9 @@ import jade.core.IMTPException;
 import jade.core.Node;
 import jade.core.PlatformManager;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.apache.log4j.Logger;
 import org.gonnot.imtp.command.Command;
 import org.gonnot.imtp.command.Result;
@@ -28,6 +31,7 @@ class IMTPMain implements Runnable {
     private WebServerSocket socketServer;
     private boolean closing;
     private Node localNode;
+    private List<WebSocket> activeSockets = Collections.synchronizedList(new ArrayList<WebSocket>());
 
 
     IMTPMain(Node localNode) {
@@ -51,17 +55,6 @@ class IMTPMain implements Runnable {
     }
 
 
-    public void shutDown() {
-        closing = true;
-        try {
-            socketServer.close();
-        }
-        catch (IOException e) {
-            throw new IllegalStateException("Unable to stop the WebSocket server", e);
-        }
-    }
-
-
     public void run() {
         try {
             handleClientContainerFirstConnection();
@@ -72,29 +65,57 @@ class IMTPMain implements Runnable {
     }
 
 
-    private void handleErrorDisplay(Throwable error, String normalExit, String failingExit) {
-        if (closing) {
-            LOG.info(normalExit);
-        }
-        else {
-            LOG.error(failingExit, error);
-        }
-    }
-
-
     public void handleClientContainerFirstConnection() throws IOException {
         while (true) {
             WebSocket ws = socketServer.accept();
             if (PLATFORM_URI.equals(ws.getRequestUri())) {
-                LOG.info("New connection request -"
-                         + " GET " + ws.getRequestUri()
-                         + " from " + ws.getRemoteSocketAddressId());
+                LOG.info("New connection request - GET " + ws.getRequestUri() + " from " + ws.getRemoteId());
+                activeSockets.add(ws);
                 (new PlatformManagerProxyReader(ws)).start();
             }
             else {
                 LOG.warn("Unsupported request - GET " + ws.getRequestUri());
                 silentClose(ws);
             }
+        }
+    }
+
+
+    public void shutDown() {
+        if (closing) {
+            return;
+        }
+        LOG.info("Shutdown IMTP main servers and all active connections...");
+        closing = true;
+        try {
+            socketServer.close();
+        }
+        catch (IOException e) {
+            throw new IllegalStateException("Unable to stop the WebSocket server", e);
+        }
+        finally {
+            for (WebSocket socket : copyOf(activeSockets)) {
+                silentClose(socket);
+            }
+        }
+    }
+
+
+    int getActiveConnectionCount() {
+        return activeSockets.size();
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Utility methods
+    // -----------------------------------------------------------------------------------------------------------------
+
+
+    private void handleErrorDisplay(Throwable error, String normalExit, String failingExit) {
+        if (closing) {
+            LOG.info(normalExit);
+        }
+        else {
+            LOG.error(failingExit, error);
         }
     }
 
@@ -108,6 +129,14 @@ class IMTPMain implements Runnable {
         }
     }
 
+
+    private static WebSocket[] copyOf(List<WebSocket> sockets) {
+        return sockets.toArray(new WebSocket[sockets.size()]);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Multi-Threads glue
+    // -----------------------------------------------------------------------------------------------------------------
 
     private class PlatformManagerProxyReader extends Thread {
         private WebSocket webSocket;
@@ -144,7 +173,7 @@ class IMTPMain implements Runnable {
 
         private Result executeCommand(Command command) {
             try {
-                return Result.value(command.execute(platformManager, localNode));
+                return Result.value(command.execute(platformManager, localNode), command);
             }
             catch (Throwable e) {
                 return Result.failure(e);

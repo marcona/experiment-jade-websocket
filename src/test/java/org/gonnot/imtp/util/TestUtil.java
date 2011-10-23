@@ -19,6 +19,9 @@ import static net.codjo.test.common.matcher.JUnitMatchers.is;
  *
  */
 public class TestUtil {
+    public static final int SERVER_PORT = 6969;
+
+
     private TestUtil() {
     }
 

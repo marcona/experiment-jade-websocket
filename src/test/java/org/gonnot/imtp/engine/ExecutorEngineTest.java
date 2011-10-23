@@ -144,13 +144,14 @@ public class ExecutorEngineTest {
 
 
     @Test
-    public void test_shutdown_stopsThreads() throws Exception {
+    public void test_shutdown_stopsThreadsAndWebsocketGlue() throws Exception {
         assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.WAITING));
 
         executorEngine.shutdown();
 
         assertTrue(threadStateIS(executorEngine.getSocketReaderThread(), State.TERMINATED));
         assertThat(executorEngine.isShutdown(), is(true));
+        assertThat(webSocket.isClosed(), is(true));
     }
 
 
@@ -224,6 +225,7 @@ public class ExecutorEngineTest {
         private IOException socketFailure;
         private boolean sendFailure = false;
         private boolean receiveFailure = false;
+        private boolean closed;
 
 
         public String getRemoteClientId() {
@@ -245,6 +247,11 @@ public class ExecutorEngineTest {
                 throw socketFailure;
             }
             return commands.pop();
+        }
+
+
+        public void close() {
+            closed = true;
         }
 
 
@@ -300,6 +307,11 @@ public class ExecutorEngineTest {
         public void pushFailureDuringResultPost(IOException failure) {
             sendFailure = true;
             this.socketFailure = failure;
+        }
+
+
+        public boolean isClosed() {
+            return closed;
         }
     }
 }
